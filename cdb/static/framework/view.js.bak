@@ -1,0 +1,130 @@
+import { isString } from "./util.js";
+import { ce, Element } from "./element.js";
+
+/**
+ *  \ A view is a component of a graphical interface.
+ *
+ *  Views are in charge of rendering DOM nodes to display part of a graphical
+ *  interface, from a simple button to a whole application. Views form a tree,
+ *  which allow to compose complex views from simpler ones.
+ *
+ *  Views are mostly passive. Their job is to display some data as DOM elements,
+ *  update the element when required and forward input events. They should not
+ *  update data themselves.
+ */
+export default class View {
+	constructor(props = {}, events = {}) {
+		this.props = props;
+		this.events = events;
+		this._element = null;
+	}
+
+	needUpdate() {
+		return true;
+	}
+
+	renderAsDom() {
+		if(this.needUpdate()) {
+			this._element = this._updateElement(this._element, this.render());
+		}
+		return this._element.domNode;
+	}
+
+	_updateElement(curr, next) {
+		// Special case for strings
+		if(isString(next)) {
+			const text = next;
+			next = ce("__text__", {}, text);
+			next.domNode = document.createTextNode(text);
+			return next;
+		}
+
+		// If it is a view, update it and stop (views deal themselves with attrs and children).
+		if(next.tag.prototype instanceof View) {
+			const view = (curr && curr.view && curr.tag == next.tag)?
+				curr.view:
+				new next.tag(next.attrs);
+
+			next.domNode = view.renderAsDom();
+			next.view = view;
+
+			if(curr) {
+				curr.domNode = null;
+				curr.view = null;
+			}
+
+			return next;
+		}
+
+		// Create the dom node if required.
+		const dom = (curr && curr.domNode && curr.tag == next.tag)?
+			curr.domNode:
+			document.createElement(next.tag);
+
+		// Remove the dom node from curr, so it is not used twice.
+		if(curr) {
+			curr.domNode = null;
+		}
+
+		// Set the node.
+		next.domNode = dom;
+
+		// Remove unused attributes.
+		if(curr) {
+			for(let attr of Object.keys(curr.attrs)) {
+				if(!next.hasOwnProperty(attr)) {
+					dom.removeAttribute(attr);
+				}
+			}
+		}
+
+		// Set attributes that need to be set.
+		for(let [attr, value] of Object.entries(next.attrs)) {
+			if(!curr || value != curr.attrs[attr]) {
+				dom.setAttribute(attr, value);
+			}
+		}
+
+		// Update children.
+		let domChildIndex = 0;
+		for(let [i, nextChild] of next.children.entries()) {
+			const currChild = curr?
+				this._findMatchingChild(curr, nextChild):
+				null;
+			nextChild = this._updateElement(currChild, nextChild);
+			next.children[i] = nextChild;
+
+			const key = nextChild.attrs.key;
+			if(key !== undefined) {
+				next.map[key] = nextChild;
+			}
+
+			if(dom.childNodes[i] !== nextChild.domNode) {
+				dom.insertBefore(nextChild.domNode, dom.childNodes.item(i + 1));
+			}
+			domChildIndex += 1;
+		}
+
+		// Remove remaining nodes
+		while(dom.childNodes.length > domChildIndex) {
+			dom.removeChild(dom.lastChild);
+		}
+
+		return next;
+	}
+
+	_findMatchingChild(elem, child) {
+		const key = child.attrs.key;
+		if(key !== undefined && elem.map[key] !== undefined) {
+			return elem.map[key];
+		}
+
+		for(let currChild of elem.children) {
+			if(currChild.domNode && currChild.tag == child.tag) {
+				return currChild;
+			}
+		}
+
+		return null;
+	}
+}

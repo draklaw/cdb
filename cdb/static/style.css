@@ -1,0 +1,11 @@
+.warning {
+	color: red;
+}
+
+.success {
+	background-color: #ccffcc;
+}
+
+.error {
+	background-color: #ffcccc;
+}

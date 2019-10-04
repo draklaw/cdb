@@ -1,0 +1,98 @@
+{
+    "env": {
+        "browser": true,
+        "es6": true
+    },
+    "extends": "eslint:recommended",
+    "globals": {
+        "Atomics": "readonly",
+        "SharedArrayBuffer": "readonly"
+    },
+    "parserOptions": {
+        "ecmaVersion": 2018,
+        "sourceType": "module"
+    },
+    "rules": {
+        "init-declarations": [
+            "error"
+        ],
+        "no-shadow": [
+            "warn"
+        ],
+        "no-undef-init": [
+            "warn"
+        ],
+        "no-use-before-define": [
+            "error"
+        ],
+        "no-console": [
+            "warn"
+        ],
+        "eqeqeq": [
+            "error",
+            "always"
+        ],
+        "guard-for-in": [
+          "error"
+        ],
+        "require-await": [
+            "warn"
+        ],
+        "no-return-await": [
+            "warn"
+        ],
+        "require-atomic-updates": [
+            "warn"
+        ],
+        "require-unicode-regexp": [
+            "warn"
+        ],
+        "no-unused-vars": [
+            "warn"
+        ],
+        "indent": [
+            "warn",
+            "tab"
+        ],
+        "linebreak-style": [
+            "warn",
+            "unix"
+        ],
+        "quotes": [
+            "warn",
+            "double"
+        ],
+        "semi": [
+            "warn",
+            "always"
+        ],
+        "curly": [
+            "warn",
+            "all"
+        ],
+        "brace-style": [
+            "warn",
+            "stroustrup"
+        ],
+        "camelcase": [
+            "warn"
+        ],
+        "comma-dangle": [
+            "warn",
+            "always-multiline"
+        ],
+        "new-parens": [
+            "warn"
+        ],
+        "no-var": [
+            "error"
+        ],
+        "prefer-const": [
+            "warn"
+        ],
+        "dot-notation": [
+            "warn",
+            { "allowKeywords": false }
+        ]
+    }
+}
