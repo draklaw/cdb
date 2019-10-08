@@ -15,9 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import Action from "../framework/action.js";
+import Action from "../../framework/action.js";
 
-import CollectionView from "../collection/collection_view.js";
+import CollectionView from "../views/collection_view.js";
 
 
 export class SetItems extends Action {

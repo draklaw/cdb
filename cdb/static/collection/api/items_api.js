@@ -15,23 +15,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import { ce } from "../framework/element.js";
-import View from "../framework/view.js";
-
-import ItemsTableView from "./items_table_view.js";
+import ApiError from "../../api/api_error.js";
 
 
-export default class CollectionView extends View {
-	constructor(app, props = {}) {
-		super(app, props);
+export default class ItemsApi {
+	constructor(api, path = "/item") {
+		this.api  = api;
+		this.path = path;
 	}
 
-	render() {
-		return ce("div", { class: "cdbCollection" },
-			ce(ItemsTableView, {
-				key: "cdbTable",
-				collection: this.props.collection,
-			}),
-		);
+	fetchItems() {
+		return [
+			{
+				id: 1,
+				name: "hello",
+				label: "Hello World!",
+			},
+			{
+				id: 2,
+				name: "foo",
+				label: "Foo",
+			},
+			{
+				id: 3,
+				name: "bar",
+				label: "Bar",
+			},
+		];
+		// return this.api.fetchAndGet(this.path, "items");
 	}
 }

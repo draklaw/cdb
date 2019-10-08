@@ -18,7 +18,7 @@
 import Model from "../framework/model.js";
 
 import MessageBox from "./message_box.js";
-import ItemsList from "./items_list.js";
+import ItemsList from "../collection/models/items_list.js";
 
 
 export const loginStatus = {
