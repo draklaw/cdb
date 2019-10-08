@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import { domElement as de } from "../framework/element.js";
+import { ce } from "../framework/element.js";
 import View from "../framework/view.js";
 
 import ItemsTableView from "./items_table_view.js";
@@ -24,17 +24,14 @@ import ItemsTableView from "./items_table_view.js";
 export default class CollectionView extends View {
 	constructor(app, props = {}) {
 		super(app, props);
-
-		this.table = new ItemsTableView(this.app);
 	}
 
-	initialize() {
-		super.initialize();
-
-		this.addChild(this.table);
-
-		this._element = de("div", { class: "cdbCollection" },
-			this.table.element(),
+	render() {
+		return ce("div", { class: "cdbCollection" },
+			ce(ItemsTableView, {
+				key: "cdbTable",
+				collection: this.props.collection,
+			}),
 		);
 	}
 }

@@ -34,12 +34,7 @@ class Cdb {
 		this.modules = [];
 
 		this.routes = new RouteMapping();
-		this.views = {};
-		// this.view = new MainView(this.model, {
-		// 	loginCallback: (username, password) =>
-		// 		this.exec(new SendLogin(username, password)),
-		// });
-		// this.view.initialize();
+		this.view = null;
 
 		this._updatePending = false;
 		this._boundDoUpdate = this.doUpdate.bind(this);
@@ -94,9 +89,7 @@ class Cdb {
 		action.exec(this);
 	}
 
-	setMainView(viewName) {
-		const view = this.views[viewName];
-
+	setMainView(view) {
 		if(view === this.view) {
 			return;
 		}
@@ -126,7 +119,7 @@ class Cdb {
 	doUpdate() {
 		this._updatePending = false;
 
-		const elem = this.view.render();
+		const elem = this.view._render();
 
 		if(elem === this._element) {
 			return;

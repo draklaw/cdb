@@ -25,3 +25,36 @@ export function removeAllChildren(element) {
 		element.removeChild(element.lastChild);
 	}
 }
+
+export function areObjectsEqual(obj0, obj1) {
+	for(const [key, value0] of Object.entries(obj0)) {
+		if(obj1[key] !== value0) {
+			return false;
+		}
+	}
+
+	for(const key of Object.entries(obj1)) {
+		if(obj0[key] === undefined) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+export function* map(iterable, func) {
+	for(const item of iterable) {
+		yield func(item);
+	}
+}
+
+export function* flatten(iterable) {
+	if(iterable[Symbol.iterator] !== undefined && !isString(iterable)) {
+		for(const item of iterable) {
+			yield* flatten(item);
+		}
+	}
+	else {
+		yield iterable;
+	}
+}

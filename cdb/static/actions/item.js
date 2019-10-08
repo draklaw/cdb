@@ -17,6 +17,8 @@
 
 import Action from "../framework/action.js";
 
+import CollectionView from "../collection/collection_view.js";
+
 
 export class SetItems extends Action {
 	constructor(items) {
@@ -55,7 +57,9 @@ export class ShowCollection extends Action {
 	}
 
 	exec(controller) {
-		controller.setMainView("items");
+		controller.setMainView(new CollectionView(controller, {
+			collection: controller.model.items,
+		}));
 		controller.exec(new FetchItems());
 	}
 }
