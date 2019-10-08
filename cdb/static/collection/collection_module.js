@@ -15,12 +15,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import ItemsApi from "./api/items_api.js";
+import ItemsList from "./models/items_list.js";
 import { ShowCollection } from "./actions/item.js";
 
 
 export default class CollectionModule {
 	constructor() {
 		this.app = null;
+		this.name = "collection";
+
+		this.api = {
+			items: api => new ItemsApi(api),
+		};
+
+		this.model = {
+			items: model => new ItemsList(model),
+		};
 
 		this.routes = [
 			[ "/items", () => new ShowCollection() ],

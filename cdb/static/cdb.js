@@ -31,7 +31,7 @@ class Cdb {
 	constructor(parentElement) {
 		this.api = new CdbApi("/api");
 		this.model = new CdbModel(this);
-		this.modules = [];
+		this.modules = {};
 
 		this.routes = new RouteMapping();
 		this.view = null;
@@ -69,7 +69,21 @@ class Cdb {
 
 	register(module) {
 		module.register(this);
-		this.modules.push(module);
+		this.modules[module.name] = module;
+
+		for(const [name, factory] of Object.entries(module.api)) {
+			if(this.api[name] !== undefined) {
+				throw new Error(`Module ${module.name} redeclares the API ${name}.`);
+			}
+			this.api[name] = factory(this.api);
+		}
+
+		for(const [name, factory] of Object.entries(module.model)) {
+			if(this.model[name] !== undefined) {
+				throw new Error(`Module ${module.name} redeclares the model ${name}.`);
+			}
+			this.model[name] = factory(this.model);
+		}
 	}
 
 	addRoute(route, actionFactory) {

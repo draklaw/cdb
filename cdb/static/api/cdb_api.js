@@ -16,14 +16,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import ApiError from "./api_error.js";
-import ItemsApi from "../collection/api/items_api.js";
 
 
 export default class CdbApi {
 	constructor(url) {
 		this.url = url;
-
-		this.items = new ItemsApi(this);
 	}
 
 	getUrl(path) {

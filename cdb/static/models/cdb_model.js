@@ -18,7 +18,6 @@
 import Model from "../framework/model.js";
 
 import MessageBox from "./message_box.js";
-import ItemsList from "../collection/models/items_list.js";
 
 
 export const loginStatus = {
@@ -40,7 +39,5 @@ export default class CdbModel extends Model {
 		this.user = null;
 		this.loginStatus = loginStatus.disconnected;
 		this.loginAttempts = 0;
-
-		this.items = new ItemsList(this);
 	}
 }
