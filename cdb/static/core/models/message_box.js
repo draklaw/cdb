@@ -15,43 +15,49 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import { domElement as de } from "../framework/element.js";
-import View from "../framework/view.js";
+import Model from "../../framework/model.js";
 
 
-export default class MessageBoxView extends View {
-	constructor(messageBox) {
-		super();
-
-		this._messageBox = messageBox;
-		this.addModel(this._messageBox);
-
-		this._text = null;
+export default class MessageBox extends Model {
+	constructor(parent) {
+		super(parent);
+		this._message = "";
+		this._messageClass = "";
 	}
 
-	initialize() {
-		super.initialize();
-
-		if(this._element) {
-			return this._element;
-		}
-
-		this._text = document.createTextNode("");
-		this._element = de("div", {}, this._text);
-
-		return this._element;
+	isMessageBoxVisible() {
+		return this._message !== "";
 	}
 
-	render() {
-		super.render();
+	messageClass() {
+		return this._messageClass;
+	}
 
-		const visible = this._messageBox.isMessageBoxVisible();
-		this._element.hidden = !visible;
-		if(visible) {
-			this._element.className = this._messageBox.messageClass();
-			this._text.textContent = this._messageBox.message();
+	message() {
+		return this._message;
+	}
+
+	setMessage(messageClass, message) {
+		if(message === this._message && messageClass === this._messageClass) {
+			return;
 		}
 
-		return this._element;
+		console.log(`${messageClass}: ${message}`);
+
+		this._messageClass = messageClass;
+		this._message = message;
+
+		this.update();
+	}
+
+	clearMessage() {
+		if(this._message === "") {
+			return;
+		}
+
+		this._messageClass = "";
+		this._message = "";
+
+		this.update();
 	}
 }

@@ -14,3 +14,22 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+import Model from "../../framework/model.js";
+
+
+export const loginStatus = {
+	disconnected: "disconnected",
+	pending:      "pending",
+	connected:    "connected",
+};
+
+export default class LoginModel extends Model {
+	constructor(parent) {
+		super(parent);
+
+		this.user = null;
+		this.status = loginStatus.disconnected;
+		this.attempts = 0;
+	}
+}

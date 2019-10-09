@@ -57,9 +57,9 @@ export class ShowCollection extends Action {
 	}
 
 	exec(controller) {
-		controller.setMainView(new CollectionView(controller, {
+		controller.setMainView(CollectionView, {
 			collection: controller.model.items,
-		}));
+		});
 		controller.exec(new FetchItems());
 	}
 }

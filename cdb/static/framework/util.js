@@ -58,3 +58,11 @@ export function* flatten(iterable) {
 		yield iterable;
 	}
 }
+
+export function* filter(iterable, predicate) {
+	for(const item of iterable) {
+		if(predicate(item)) {
+			yield item;
+		}
+	}
+}

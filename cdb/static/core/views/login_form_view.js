@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import { domElement as de } from "../framework/element.js";
-import View from "../framework/view.js";
+import { domElement as de } from "../../framework/element.js";
+import View from "../../framework/view.js";
 
 
 export default class MessageBoxView extends View {
@@ -34,8 +34,9 @@ export default class MessageBoxView extends View {
 	initialize() {
 		super.initialize();
 
-		if(this._element)
+		if(this._element) {
 			return this._element;
+		}
 
 		this._usernameInput = de("input", {
 			type: "text",
@@ -45,7 +46,7 @@ export default class MessageBoxView extends View {
 
 		this._passwordInput = de("input", {
 			type: "password",
-			name: "password"
+			name: "password",
 		});
 
 		this._form = de("form", { class: "cdbLoginForm" },
@@ -62,7 +63,7 @@ export default class MessageBoxView extends View {
 				this._passwordInput
 			),
 			de("input", { type: "submit", value: "Login" })
-		)
+		);
 
 		this._form.addEventListener("submit", this._boundLogin);
 
@@ -73,8 +74,8 @@ export default class MessageBoxView extends View {
 	_login(event) {
 		event.preventDefault();
 		this.loginCallback(
-			this._form["username"].value,
-			this._form["password"].value
+			this._form.username.value,
+			this._form.password.value,
 		);
 	}
 }

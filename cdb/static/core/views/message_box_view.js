@@ -15,39 +15,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import { domElement as de } from "../framework/element.js";
-import View from "../framework/view.js";
-
-import MessageBoxView from "./message_box_view.js";
-import LoginFormView from "./login_form_view.js";
+import { domElement as de } from "../../framework/element.js";
+import View from "../../framework/view.js";
 
 
-export default class MainView extends View {
-	constructor(app, props) {
+export default class MessageBoxView extends View {
+	constructor(messageBox) {
 		super();
 
-		this._app = app;
-		this.addModel(this._app);
+		this._messageBox = messageBox;
+		this.addModel(this._messageBox);
 
-		this.messageBox = new MessageBoxView(this._app.messageBox);
-		this.loginForm = new LoginFormView(props.loginCallback);
+		this._text = null;
 	}
 
 	initialize() {
 		super.initialize();
 
-		this.addChild(this.messageBox);
-		this.addChild(this.loginForm);
+		if(this._element) {
+			return this._element;
+		}
 
-		this._userBox =
+		this._text = document.createTextNode("");
+		this._element = de("div", {}, this._text);
 
-		this._element = de("div", { class: "cdbApp" },
-			de("header", { class: "cdbHeader" },
-				de("h1", {}, this._app.title)
-			),
-			this.messageBox.element(),
-			this.loginForm.element()
-		);
+		return this._element;
+	}
+
+	render() {
+		super.render();
+
+		const visible = this._messageBox.isMessageBoxVisible();
+		this._element.hidden = !visible;
+		if(visible) {
+			this._element.className = this._messageBox.messageClass();
+			this._text.textContent = this._messageBox.message();
+		}
 
 		return this._element;
 	}

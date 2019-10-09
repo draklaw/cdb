@@ -15,9 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import Action from "../framework/action.js";
+import Action from "../../framework/action.js";
 
-import { loginStatus } from "../models/cdb_model.js";
+import { loginStatus } from "../models/login_model.js";
 
 
 export class CompleteLogin extends Action {
@@ -32,13 +32,13 @@ export class CompleteLogin extends Action {
 	}
 
 	exec(controller) {
-		const model = controller.model;
+		const { login, messageBox } = controller.model;
 
-		model.user = this.user;
-		model.loginStatus = loginStatus.connected;
-		model.loginAttempts = 0;
+		login.user = this.user;
+		login.status = loginStatus.connected;
+		login.attempts = 0;
 
-		model.messageBox.setMessage("success", `Logged as ${model.user.username}`);
+		messageBox.setMessage("success", `Logged as ${login.user.username}`);
 	}
 }
 
@@ -54,12 +54,12 @@ export class FailLogin extends Action {
 	}
 
 	exec(controller) {
-		const model = controller.model;
+		const { login, messageBox } = controller.model;
 
-		model.loginStatus = loginStatus.disconnected;
-		model.loginAttempts += 1;
+		login.status = loginStatus.disconnected;
+		login.attempts += 1;
 
-		model.messageBox.setMessage("error", `Login failed: ${this.error}`);
+		messageBox.setMessage("error", `Login failed: ${this.error}`);
 	}
 }
 
@@ -77,11 +77,12 @@ export class SendLogin extends Action {
 
 	async exec(controller) {
 		const { model, api } = controller;
+		const { login } = model;
 
-		if(model.loginStatus !== loginStatus.disconnected) {
-			throw Error(`Cannot send login when login status is ${model.loginStatus}.`);
+		if(login.status !== loginStatus.disconnected) {
+			throw Error(`Cannot send login when login status is ${login.status}.`);
 		}
-		model.loginStatus = loginStatus.pending;
+		login.status = loginStatus.pending;
 
 		const username = this.username;
 		const password = this.password;
@@ -105,12 +106,12 @@ export class CompleteLogout extends Action {
 	}
 
 	exec(controller) {
-		const model = controller.model;
+		const { login, messageBox } = controller.model;
 
-		model.user = null;
-		model.loginStatus = loginStatus.disconnected;
+		login.user = null;
+		login.status = loginStatus.disconnected;
 
-		model.messageBox.setMessage("success", "Logged-out.");
+		messageBox.setMessage("success", "Logged-out.");
 	}
 }
 
@@ -126,11 +127,11 @@ export class FailLogout extends Action {
 	}
 
 	exec(controller) {
-		const model = controller.model;
+		const { login, messageBox } = controller.model;
 
-		model.loginStatus = loginStatus.connected;
+		login.status = loginStatus.connected;
 
-		model.messageBox.setMessage("error", `Failed to log-out: ${this.errors}.`);
+		messageBox.setMessage("error", `Failed to log-out: ${this.errors}.`);
 	}
 }
 
@@ -141,11 +142,12 @@ export class SendLogout extends Action {
 
 	async exec(controller) {
 		const { model, api } = controller;
+		const { login } = model;
 
-		if(model.loginStatus !== loginStatus.disconnected) {
-			throw Error(`Cannot send login when login status is ${model.loginStatus}.`);
+		if(login.status !== loginStatus.disconnected) {
+			throw Error(`Cannot send login when login status is ${login.status}.`);
 		}
-		model.loginStatus = loginStatus.pending;
+		login.status = loginStatus.pending;
 
 		try {
 			await api.logout();

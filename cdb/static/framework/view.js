@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import { areObjectsEqual, isString, flatten } from "./util.js";
+import { areObjectsEqual, isString, flatten, filter } from "./util.js";
 import { domElement as de } from "./element.js";
 import Model from "./model.js";
 
@@ -65,6 +65,14 @@ export default class View {
 
 			this._needUpdate = true;
 		}
+	}
+
+	updateProps(props) {
+		const newProps = {
+			...this.props,
+			...props,
+		};
+		this.setProps(newProps);
 	}
 
 	updateModelsVersion() {
@@ -179,7 +187,7 @@ export default class View {
 		if(isString(elem.tag)) {
 			const [elemAttrs, viewAttrs] = splitAttrs(elem.attrs);
 			const domElem = de(elem.tag, elemAttrs);
-			for(const child of flatten(elem.children)) {
+			for(const child of flatten(filter(elem.children, e => e))) {
 				const childElem = this.renderElement(child);
 				domElem.appendChild(childElem);
 			}

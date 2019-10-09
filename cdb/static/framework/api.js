@@ -18,7 +18,7 @@
 import ApiError from "./api_error.js";
 
 
-export default class CdbApi {
+export default class Api {
 	constructor(url) {
 		this.url = url;
 	}
@@ -86,16 +86,4 @@ export default class CdbApi {
 			);
 		}
 	}
-
-	login(username, password) {
-		return this.fetchAndGet("/login", "user", {
-			method: "POST",
-			body: JSON.stringify({ username, password }),
-		});
-	}
-
-	logout() {
-		return this.fetch("/logout");
-	}
-
 }

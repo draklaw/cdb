@@ -15,49 +15,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import Model from "../framework/model.js";
+import Module from "../framework/module.js";
+
+import LoginApi from "./api/login_api.js";
+import LoginModel from "./models/login_model.js";
+import MessageBox from "./models/message_box.js";
+// import { ShowSignIn } from "./actions/login.js";
 
 
-export default class MessageBox extends Model {
-	constructor(parent) {
-		super(parent);
-		this._message = "";
-		this._messageClass = "";
-	}
+export default class CoreModule extends Module {
+	constructor() {
+		super("login");
 
-	isMessageBoxVisible() {
-		return this._message !== "";
-	}
+		this.api = {
+			login: api => new LoginApi(api),
+		};
 
-	messageClass() {
-		return this._messageClass;
-	}
+		this.model = {
+			login: model => new LoginModel(model),
+			messageBox: model => new MessageBox(model),
+		};
 
-	message() {
-		return this._message;
-	}
-
-	setMessage(messageClass, message) {
-		if(message === this._message && messageClass === this._messageClass) {
-			return;
-		}
-
-		console.log(`${messageClass}: ${message}`);
-
-		this._messageClass = messageClass;
-		this._message = message;
-
-		this.update();
-	}
-
-	clearMessage() {
-		if(this._message === "") {
-			return;
-		}
-
-		this._messageClass = "";
-		this._message = "";
-
-		this.update();
+		this.routes = [
+			// [ "/signin", () => new ShowSignIn() ],
+			// [ "/signup", () => new ShowSignUp() ],
+		];
 	}
 }

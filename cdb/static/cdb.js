@@ -15,26 +15,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import Api from "./framework/api.js";
+import Model from "./framework/model.js";
 import { RouteMapping } from "./framework/route.js";
 
-import CdbApi from "./api/cdb_api.js";
-import CdbModel from "./models/cdb_model.js";
-
+import CoreModule from "./core/core_module.js";
 import CollectionModule from "./collection/collection_module.js";
 
-// import MainView from "./views/main_view.js";
-
-// import { SendLogin } from "./actions/login.js";
+import MainView from "./core/views/main_view.js";
 
 
 class Cdb {
 	constructor(parentElement) {
-		this.api = new CdbApi("/api");
-		this.model = new CdbModel(this);
+		this.api = new Api("/api");
+
+		this.model = new Model(this);
+		this.model.title = "Cdb";
+
 		this.modules = {};
 
 		this.routes = new RouteMapping();
-		this.view = null;
+		this.view = new MainView(this, {
+			cdb: this.model,
+		});
+		this.view.initialize();
 
 		this._updatePending = false;
 		this._boundDoUpdate = this.doUpdate.bind(this);
@@ -44,6 +48,7 @@ class Cdb {
 
 		this.logActions = true;
 
+		this.register(new CoreModule());
 		this.register(new CollectionModule());
 
 		this.goTo("/items");
@@ -72,18 +77,30 @@ class Cdb {
 		this.modules[module.name] = module;
 
 		for(const [name, factory] of Object.entries(module.api)) {
-			if(this.api[name] !== undefined) {
-				throw new Error(`Module ${module.name} redeclares the API ${name}.`);
-			}
-			this.api[name] = factory(this.api);
+			this.addApi(name, factory);
 		}
 
 		for(const [name, factory] of Object.entries(module.model)) {
-			if(this.model[name] !== undefined) {
-				throw new Error(`Module ${module.name} redeclares the model ${name}.`);
-			}
-			this.model[name] = factory(this.model);
+			this.addModel(name, factory);
 		}
+
+		for(const [route, actionFactory] of module.routes) {
+			this.addRoute(route, actionFactory);
+		}
+	}
+
+	addApi(name, factory) {
+		if(this.api[name] !== undefined) {
+			throw new Error(`Redeclaration of the API ${name}.`);
+		}
+		this.api[name] = factory(this.api);
+	}
+
+	addModel(name, factory) {
+		if(this.model[name] !== undefined) {
+			throw new Error(`Redeclaration of the model ${name}.`);
+		}
+		this.model[name] = factory(this.model);
 	}
 
 	addRoute(route, actionFactory) {
@@ -103,20 +120,11 @@ class Cdb {
 		action.exec(this);
 	}
 
-	setMainView(view) {
-		if(view === this.view) {
-			return;
-		}
-
-		if(this.view) {
-			this.view.destroy();
-		}
-
-		this.view = view;
-
-		if(this.view) {
-			this.view.initialize();
-		}
+	setMainView(view, props) {
+		this.view.updateProps({
+			innerView: view,
+			innerViewProps: props,
+		});
 
 		this.update();
 	}

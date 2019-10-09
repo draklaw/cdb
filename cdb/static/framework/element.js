@@ -21,7 +21,7 @@ import { isString } from "./util.js";
 export function domElement(tag, attrs = {}, ...children) {
 	const elem = document.createElement(tag);
 
-	for(let [k, v] of Object.entries(attrs)) {
+	for(const [k, v] of Object.entries(attrs)) {
 		elem.setAttribute(k, v);
 	}
 

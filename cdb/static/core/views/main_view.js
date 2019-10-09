@@ -15,27 +15,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import Module from "../framework/module.js";
-
-import ItemsApi from "./api/items_api.js";
-import ItemsList from "./models/items_list.js";
-import { ShowCollection } from "./actions/item.js";
+import { ce } from "../../framework/element.js";
+import View from "../../framework/view.js";
 
 
-export default class CollectionModule extends Module {
-	constructor() {
-		super("collection");
+export default class MainView extends View {
+	constructor(app, props) {
+		super(app, props);
+	}
 
-		this.api = {
-			items: api => new ItemsApi(api),
-		};
+	render() {
+		const {
+			cdb,
+			innerView = null,
+			innerViewProps = {},
+		} = this.props;
 
-		this.model = {
-			items: model => new ItemsList(model),
-		};
+		const { title } = cdb;
 
-		this.routes = [
-			[ "/items", () => new ShowCollection() ],
-		];
+		return ce("div", { class: "cdbApp" },
+			ce("header", { class: "cdbHeader" },
+				ce("h1", {}, title)
+			),
+			innerView? ce(innerView, innerViewProps): undefined,
+		);
 	}
 }

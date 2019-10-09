@@ -15,8 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import ApiError from "../../api/api_error.js";
-
 
 export default class ItemsApi {
 	constructor(api, path = "/item") {
