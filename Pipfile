@@ -11,6 +11,6 @@ flask = "*"
 flask-restful = "*"
 flask-sqlalchemy = "*"
 sqlalchemy = "*"
-
-[requires]
-python_version = "3.5"
+fastapi = "*"
+uvicorn = "*"
+aiofiles = "*"

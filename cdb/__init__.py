@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # This file is part of cdb.
 #
 # Copyright (C) 2019  the authors (see AUTHORS)
@@ -17,51 +15,32 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
-import os.path
-from flask import Flask, url_for
+from sqlalchemy.ext.associationproxy import association_proxy
 
 from .db import db
+from .user import User
+from .item import Item
+from .collection import Collection
+from .user_collection import UserCollection
 
 
-def create_app(test_config = None):
-    app = Flask(__name__, instance_relative_config=True)
-    app.config.from_mapping(
-        SECRET_KEY = "dev",
-        SQLALCHEMY_DATABASE_URI =
-            "sqlite:///{}/cdb.sqlite".format(app.instance_path),
-        SQLALCHEMY_TRACK_MODIFICATIONS = False,
+User.owned_collections = db.relationship(Collection, back_populates="owner")
+User.user_collections = db.relationship(UserCollection, back_populates="user")
+User.collections = association_proxy("user_collections", "collection")
+
+Collection.owner = db.relationship(User, back_populates="owned_collections")
+Collection.user_collections = db.relationship(UserCollection, back_populates="collection")
+Collection.users = association_proxy("user_collections", "user")
+Collection.items = db.relationship(Item, back_populates="collection")
+
+UserCollection.user = db.relationship(User, back_populates="user_collections")
+UserCollection.collection = db.relationship(Collection, back_populates="user_collections")
+
+Item.collection = db.relationship(Collection, back_populates="items")
+
+
+def query_collections_from_user(user_id):
+    return (
+        db.query(Collection, UserCollection)
+            .filter(UserCollection.user_id == user_id)
     )
-
-    if test_config is None:
-        app.config.from_pyfile("config.py", silent=True)
-    else:
-        app.config.from_mapping(test_config)
-
-    try:
-        os.makedirs(app.instance_path)
-    except OSError:
-        pass
-
-    db.init_app(app)
-
-    from .commands import register_commands
-    register_commands(app)
-
-    from .api import create_api
-
-    api_blueprint = create_api()
-    app.register_blueprint(api_blueprint, url_prefix="/api")
-
-    @app.route("/")
-    def index(path = "/"):
-        with app.open_resource("static/index.html", "r") as stream:
-            index = stream.read()
-        return index.format(
-            lang="en",
-            title="Collections",
-            stylesheet=url_for("static", filename="style.css"),
-            main_js=url_for("static", filename="cdb.js"))
-    app.add_url_rule("/<path:path>", "index")
-
-    return app
