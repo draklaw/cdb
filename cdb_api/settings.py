@@ -15,24 +15,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from fastapi import FastAPI
-
-from . import settings
+from starlette.config import Config
 
 
-app = FastAPI(
-    title="CDB",
-    description="A generic collection database.",
-    version="0.1.0",
-    openapi_prefix=settings.api_prefix,
-)
+config = Config(".env")
 
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: str = None):
-    return {"item_id": item_id, "q": q}
+debug = config("CDB_DEBUG", cast=bool, default=False)
+api_prefix = config("CDB_API_PREFIX", cast=str, default="/api")

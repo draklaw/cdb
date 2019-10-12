@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from fastapi import FastAPI
+from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 from starlette.staticfiles import StaticFiles
@@ -25,28 +25,25 @@ import aiofiles
 
 import cdb_api
 
-app = FastAPI()
+app = Starlette(debug=True)
 
 static_files = StaticFiles(directory="static")
 app.mount("/static", static_files, name="static")
 
-app.include_router(
-    cdb_api.router,
-    prefix="/api",
-)
+app.mount("/api", cdb_api.app)
 
 
-@app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
+@app.route("/")
+async def index(request: Request):
     path, _ = await static_files.lookup_path("index.html")
     async with aiofiles.open(path, "r") as f:
         index = await f.read()
-    return index.format(
+    return HTMLResponse(index.format(
         lang="en",
         title="Collections",
         stylesheet=request.url_for("static", path="/style.css"),
         main_js=request.url_for("static", path="/cdb.js")
-    )
+    ))
 
 
 if __name__ == "__main__":
