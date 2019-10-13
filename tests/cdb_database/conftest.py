@@ -21,6 +21,7 @@ from sqlalchemy import create_engine
 from databases import Database
 
 from cdb_database import create_tables, drop_tables
+from cdb_database.test_db import fill_test_db
 
 
 DB_URL = "sqlite:///test.db"
@@ -40,9 +41,8 @@ async def raw_database():
     drop_tables(engine)
     create_tables(engine)
 
-    # TODO: Fill database with test data.
-
     async with Database(DB_URL) as database:
+        await fill_test_db(database)
         yield database
 
 

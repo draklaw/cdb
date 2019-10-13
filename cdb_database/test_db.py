@@ -15,26 +15,38 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import pytest
-from cdb_database.user import (
-    get_user,
+from .user import UserDb, create_users
+
+
+admin_user = UserDb(
+    id=1,
+    username="admin",
+    email="admin@cdb.org",
+    hashed_password="password",
+    is_admin=True,
 )
-from cdb_database.test_db import *
+
+test_user = UserDb(
+    id=2,
+    username="test",
+    email="test@test.com",
+    hashed_password="123",
+)
+
+disabled_user = UserDb(
+    id=3,
+    username="disabled",
+    email="disabled@foo.net",
+    hashed_password="disabled",
+    is_active=False,
+)
+
+users = [
+    admin_user,
+    test_user,
+    disabled_user,
+]
 
 
-pytestmark = pytest.mark.asyncio
-
-
-async def test_get_user_by_id(database):
-    user = await get_user(database, id=admin_user.id)
-    assert user == admin_user
-
-
-async def test_get_user_by_username(database):
-    user = await get_user(database, username=test_user.username)
-    assert user == test_user
-
-
-async def test_get_user_by_email(database):
-    user = await get_user(database, email=disabled_user.email)
-    assert user == disabled_user
+async def fill_test_db(database):
+    await create_users(database, *users)
