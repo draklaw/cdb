@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "fcb73630ae248cceaf26f04e9fff7c8c4e56a7e9c432faa7ce5ee5c944422b1b"
+            "sha256": "aea31e273a2f6603837459ce9bfc585e8df0307a4a1c408f91de9b2ddd50cb53"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -22,6 +22,12 @@
             "index": "pypi",
             "version": "==0.4.0"
         },
+        "aiosqlite": {
+            "hashes": [
+                "sha256:ad84fbd7516ca7065d799504fc41d6845c938e5306d1b7dd960caaeda12e22a9"
+            ],
+            "version": "==0.10.0"
+        },
         "aniso8601": {
             "hashes": [
                 "sha256:529dcb1f5f26ee0df6c0a1ee84b7b27197c3c50fc3a6321d66c544689237d072",
@@ -35,6 +41,16 @@
                 "sha256:5b94b49521f6456670fdb30cd82a4eca9412788a93fa6dd6df72c94d5a8ff2d7"
             ],
             "version": "==7.0"
+        },
+        "databases": {
+            "extras": [
+                "sqlite"
+            ],
+            "hashes": [
+                "sha256:1e3b21a237d8b8a8774da1237fa75e951e23bf8e943516df8fe2443f1968287f"
+            ],
+            "index": "pypi",
+            "version": "==0.2.5"
         },
         "fastapi": {
             "hashes": [
@@ -276,6 +292,14 @@
             ],
             "index": "pypi",
             "version": "==5.2.1"
+        },
+        "pytest-asyncio": {
+            "hashes": [
+                "sha256:9fac5100fd716cbecf6ef89233e8590a4ad61d729d1732e0a96b84182df1daaf",
+                "sha256:d734718e25cfc32d2bf78d346e99d33724deeba774cc4afdf491530c6184b63b"
+            ],
+            "index": "pypi",
+            "version": "==0.10.0"
         },
         "six": {
             "hashes": [

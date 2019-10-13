@@ -21,9 +21,9 @@ from . import (
 )
 
 
-def create_all(engine):
+def create_tables(engine):
     schema.metadata.create_all(engine)
 
 
-def drop_all(engine):
+def drop_tables(engine):
     schema.metadata.drop_all(engine)

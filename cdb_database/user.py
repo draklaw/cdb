@@ -27,7 +27,7 @@ from sqlalchemy import (
     String,
     bindparam,
 )
-from sqlalchemy.engine import Connection
+from databases import Database
 
 from .schema import create_table
 
@@ -53,29 +53,34 @@ _user_by_username = (
 )
 
 
-def create_user(
-    connection: Connection,
+async def create_user(
+    database: Database,
     username: str,
     email: str,
     hashed_password: str,
     is_admin: bool = False,
     is_active: bool = True,
 ) -> int:
-    return connection.execute(
+    return await database.execute(
         _create_user,
-        username=username,
-        email=email,
-        hashed_password=hashed_password,
-        is_admin=is_admin,
-        is_active=is_active,
-    ).inserted_primary_key[0]
+        dict(
+            username=username,
+            email=email,
+            hashed_password=hashed_password,
+            is_admin=is_admin,
+            is_active=is_active,
+        ),
+    )
 
 
-def user_by_username(
-    connection: Connection,
+async def user_by_username(
+    database: Database,
     username: str,
 ) -> User:
-    return User(**connection.execute(
-        _user_by_username,
-        username=username
-    ).first())
+    query = _user_by_username
+    row = await database.fetch_one(
+        query.params(
+            username=username
+        ),
+    )
+    return User(**row)
