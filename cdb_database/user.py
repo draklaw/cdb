@@ -31,6 +31,7 @@ from sqlalchemy import (
 from databases import Database
 
 from .schema import create_table
+from .error import NotFoundError
 
 
 class UserBase(BaseModel):
@@ -133,13 +134,19 @@ async def get_user(
         row = await database.fetch_one(
             _user_by_id.params(id=id)
         )
+        if row is None:
+            raise NotFoundError(f"User with id {id} not found")
     elif username is not None:
         row = await database.fetch_one(
             _user_by_username.params(username=username)
         )
+        if row is None:
+            raise NotFoundError(f"User with username '{username}' not found")
     elif email is not None:
         row = await database.fetch_one(
             _user_by_email.params(email=email)
         )
+        if row is None:
+            raise NotFoundError(f"User with email '{email}' not found")
 
     return UserDb(**row)

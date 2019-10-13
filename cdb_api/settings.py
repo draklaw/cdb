@@ -22,3 +22,4 @@ config = Config(".env")
 
 debug = config("CDB_DEBUG", cast=bool, default=False)
 api_prefix = config("CDB_API_PREFIX", cast=str, default="/api")
+database_url = config("CDB_DATABASE", cast=str)

@@ -15,28 +15,23 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import pytest
-from cdb_database.user import (
-    get_user,
-)
-from cdb_database.test_db import (
-    admin_user, test_user, disabled_user,
-)
+from fastapi import APIRouter
+
+from cdb_database import user as user_db
+
+from .db import Database, transaction
 
 
-pytestmark = pytest.mark.asyncio
+router = APIRouter()
 
 
-async def test_get_user_by_id(database):
-    user = await get_user(database, id=admin_user.id)
-    assert user == admin_user
+@router.get("/user/me")
+def get_logged_user():
+    return dict(result="TODO")
 
 
-async def test_get_user_by_username(database):
-    user = await get_user(database, username=test_user.username)
-    assert user == test_user
+@router.get("/user/{username}", response_model=user_db.UserPublic)
+async def get_user(username: str, db: Database = transaction):
+    # TODO: ACL
 
-
-async def test_get_user_by_email(database):
-    user = await get_user(database, email=disabled_user.email)
-    assert user == disabled_user
+    return await user_db.get_user(db, username=username)

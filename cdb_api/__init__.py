@@ -15,9 +15,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+from starlette.status import HTTP_404_NOT_FOUND
 from fastapi import FastAPI
 
-from . import settings
+from . import settings, user
+from .db import database
+
+from cdb_database.error import NotFoundError
 
 
 app = FastAPI(
@@ -27,12 +33,27 @@ app = FastAPI(
     openapi_prefix=settings.api_prefix,
 )
 
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+app.include_router(user.router)
 
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: str = None):
-    return {"item_id": item_id, "q": q}
+@app.on_event("startup")
+async def connect_to_database():
+    await database.connect()
+
+
+@app.on_event("shutdown")
+async def disconnect_from_database():
+    await database.connect()
+
+
+@app.middleware("http")
+async def convert_db_exceptions(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except NotFoundError as err:
+        return JSONResponse(
+            status_code = HTTP_404_NOT_FOUND,
+            content = dict(
+                detail = str(err)
+            )
+        )
