@@ -19,26 +19,32 @@ from .user import UserDb, create_users
 
 
 admin_user = UserDb(
-    id=1,
-    username="admin",
-    email="admin@cdb.org",
-    hashed_password="password",
-    is_admin=True,
+    id = 1,
+    username = "admin",
+    email = "admin@cdb.org",
+    # password = "password",
+    hashed_password =
+        "$2b$12$/nZ5kOk767gETPPP6tJo6eFMJKMldF1KcfXBfQbMEUkUUVEW8uGIq",
+    is_admin = True,
 )
 
 test_user = UserDb(
-    id=2,
-    username="test",
-    email="test@test.com",
-    hashed_password="123",
+    id = 2,
+    username = "test",
+    email = "test@test.com",
+    # password = "123",
+    hashed_password =
+        "$2b$12$g.Ht1khxE7obzOHlBs4/VOZGf7w6E16R04uXOhy6hKS28fpn4wCra",
 )
 
 disabled_user = UserDb(
-    id=3,
-    username="disabled",
-    email="disabled@foo.net",
-    hashed_password="disabled",
-    is_active=False,
+    id = 3,
+    username = "disabled",
+    email = "disabled@foo.net",
+    # password = "disabled",
+    hashed_password =
+        "$2b$12$MUwE2PFQfScLrqxGsMGMXOH4xj5yz8Ai5cHW5RLOcm6JHvdp5Ogb.",
+    disabled = True,
 )
 
 users = [

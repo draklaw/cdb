@@ -16,3 +16,6 @@ fastapi = "*"
 uvicorn = "*"
 aiofiles = "*"
 databases = {extras = ["sqlite"],version = "*"}
+passlib = {extras = ["bcrypt"],version = "*"}
+pyjwt = "*"
+python-multipart = "*"

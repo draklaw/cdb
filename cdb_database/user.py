@@ -43,7 +43,7 @@ class UserBase(BaseModel):
                           unique=True, index=True)
     email: str = Field(..., max_length=128, unique=True, index=True)
     is_admin: bool = False
-    is_active: bool = True
+    disabled: bool = False
 
 
 class UserCreate(UserBase):

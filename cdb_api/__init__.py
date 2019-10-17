@@ -27,10 +27,11 @@ from cdb_database.error import NotFoundError
 
 
 app = FastAPI(
-    title="CDB",
-    description="A generic collection database.",
-    version="0.1.0",
-    openapi_prefix=settings.api_prefix,
+    title = "CDB",
+    description = "A generic collection database.",
+    version = "0.1.0",
+    openapi_prefix = settings.api_prefix,
+    debug = settings.debug,
 )
 
 app.include_router(user.router)
