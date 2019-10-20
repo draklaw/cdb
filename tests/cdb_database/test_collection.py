@@ -16,15 +16,18 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
-# from cdb_database.user import (
-#     get_user,
-# )
+
+from cdb_database.error import AlreadyExistsError
 from cdb_database.collection import (
-    CollectionQuery,
+    CollectionCreate,
+    CollectionDb,
     Collection,
+    CollectionQuery,
+    create_collection,
     get_collection,
 )
 from cdb_database.test_db import (
+    builder,
     admin_user,
     test_user,
     admin_public_col,
@@ -76,7 +79,7 @@ async def test_get_collection_by_username_and_name(database):
 
 
 async def test_get_collections_by_user_id(database):
-    collection = await (
+    collections = await (
         CollectionQuery(database, user_id=test_user.id)
         .order_by_title()
         .all()
@@ -100,11 +103,11 @@ async def test_get_collections_by_user_id(database):
         ),
     ]
 
-    assert collection == expected
+    assert collections == expected
 
 
 async def test_get_collections_by_user_id_including_deleted(database):
-    collection = await (
+    collections = await (
         CollectionQuery(database, user_id=test_user.id)
         .include_deleted()
         .order_by_title()
@@ -134,11 +137,11 @@ async def test_get_collections_by_user_id_including_deleted(database):
         ),
     ]
 
-    assert collection == expected
+    assert collections == expected
 
 
 async def test_get_collections_by_owner_id(database):
-    collection = await (
+    collections = await (
         CollectionQuery(database, user_id=admin_user.id)
         .only_owned()
         .order_by_title()
@@ -158,11 +161,11 @@ async def test_get_collections_by_owner_id(database):
         ),
     ]
 
-    assert collection == expected
+    assert collections == expected
 
 
 async def test_get_public_collections_by_owner_id(database):
-    collection = await (
+    collections = await (
         CollectionQuery(database, user_id=test_user.id)
         .only_owned()
         .only_public()
@@ -178,4 +181,37 @@ async def test_get_public_collections_by_owner_id(database):
         ),
     ]
 
-    assert collection == expected
+    assert collections == expected
+
+
+async def test_create_collection(database):
+    async with database.transaction(force_rollback=True):
+        collection = CollectionCreate(
+            name = "new",
+            owner = test_user.id,
+            title = "A new collection",
+            public = True,
+        )
+        result = await create_collection(database, collection)
+
+        expected = CollectionDb(
+            id = len(builder.collections) + 1,
+            deleted = False,
+            **collection.dict(),
+        )
+
+        assert result == expected
+
+
+async def test_create_duplicate_collection(database):
+    async with database.transaction(force_rollback=True):
+        collection = CollectionCreate(
+            name = "new",
+            owner = test_user.id,
+            title = "A new collection",
+            public = True,
+        )
+        await create_collection(database, collection)
+
+        with pytest.raises(AlreadyExistsError):
+            await create_collection(database, collection)

@@ -44,8 +44,8 @@ class UserCreate(UserBase):
 
     hashed_password: SecretStr = ...
 
-    def unwrapped_dict(self) -> dict:
-        d = self.dict()
+    def unwrapped_dict(self, **kwargs) -> dict:
+        d = self.dict(**kwargs)
         d["hashed_password"] = d["hashed_password"].get_secret_value()
         return d
 
@@ -109,24 +109,11 @@ class UserQuery(Query):
 async def create_user(
     database: Database,
     user: Union[UserCreate, UserDb],
-) -> int:
-    """Creates a user (from a UserCreate or UserDb), returns its primary key.
-    """
+) -> UserDb:
+    """Creates a user, returns it."""
 
-    return await database.execute(
-        _create_user,
-        user[0].unwrapped_dict(),
-    )
+    params = user.unwrapped_dict(exclude={"id"})
+    params.setdefault("disabled", False)
+    id = await database.execute(_create_user, params)
 
-
-async def create_users(
-    database: Database,
-    *users: UserDb,
-) -> None:
-    """Creates several users, users must be UserDb objects.
-    """
-
-    await database.execute_many(
-        _create_user,
-        [user.unwrapped_dict() for user in users],
-    )
+    return UserDb(id=id, **params)

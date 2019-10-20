@@ -70,7 +70,7 @@ async def get_collections(
 )
 async def post_collection(
     username: str,
-    collection: collection_db.CollectionCreate,
+    collection: collection_db.CollectionIn,
     user: user_db.UserDb = current_user,
     db: Database = transaction,
 ):
@@ -81,14 +81,23 @@ async def post_collection(
                 "Users can only create collections in their own repository."
         )
 
-    target_user = user_db.get_user(db, username=username)
-    id = collection_db.create_collection(db, target_user.id, collection)
+    user_query = user_db.UserQuery(db).with_username(username)
+    if user.is_admin:
+        user_query.include_disabled()
+    target_user = await user_query.one()
+
+    col = await collection_db.create_collection(
+        db,
+        collection_db.CollectionCreate(
+            owner = target_user.id,
+            **collection.dict(),
+        ),
+    )
 
     return collection_db.Collection(
-        **collection.dict(),
-        id = id,
-        owner = target_user.id,
-        is_editable = True,
+        **col.dict(),
+        user_id = target_user.id,
+        can_edit = True,
     )
 
 

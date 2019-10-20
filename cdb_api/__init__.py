@@ -19,13 +19,13 @@ import logging
 
 from starlette.requests import Request
 from starlette.responses import JSONResponse
-from starlette.status import HTTP_404_NOT_FOUND
+from starlette.status import HTTP_404_NOT_FOUND, HTTP_403_FORBIDDEN
 from fastapi import FastAPI
 
 from . import settings, user, collection
 from .db import database
 
-from cdb_database.error import NotFoundError
+from cdb_database.error import NotFoundError, AlreadyExistsError
 
 
 logger = logging.getLogger("cdb")
@@ -40,6 +40,7 @@ app = FastAPI(
 
 app.include_router(user.router)
 app.include_router(collection.router)
+
 
 @app.on_event("startup")
 async def connect_to_database():
@@ -56,10 +57,17 @@ async def disconnect_from_database():
 async def convert_db_exceptions(request: Request, call_next):
     try:
         return await call_next(request)
-    except NotFoundError as err:
+    except NotFoundError:
         return JSONResponse(
             status_code = HTTP_404_NOT_FOUND,
             content = dict(
                 detail = f"Ressource {request.url} does not exists",
+            )
+        )
+    except AlreadyExistsError:
+        return JSONResponse(
+            status_code = HTTP_403_FORBIDDEN,
+            content = dict(
+                detail = f"Ressource already exists",
             )
         )

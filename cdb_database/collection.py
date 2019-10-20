@@ -20,18 +20,17 @@ from pydantic import BaseModel
 
 from sqlalchemy import (
     select,
-    Integer, Unicode,
-    ForeignKey, PrimaryKeyConstraint, UniqueConstraint, bindparam,
+    ForeignKey, PrimaryKeyConstraint, UniqueConstraint,
 )
 from databases import Database
 
 from .schema import Field, create_table
-from .error import NotFoundError
+from .error import convert_error
 from .query import Query
 from .user import user
 
 
-class CollectionCreate(BaseModel):
+class CollectionIn(BaseModel):
     """A collection without id, suitable for creation."""
 
     name: str = Field(..., index=True)
@@ -39,12 +38,17 @@ class CollectionCreate(BaseModel):
     public: bool = False
 
 
+class CollectionCreate(CollectionIn):
+    """A collection without id, suitable for creation."""
+
+    owner: int = Field(..., ForeignKey("users.id"), index=True)
+
+
 class CollectionDb(CollectionCreate):
     """A collection as stored in the DB.
     """
 
     id: int = Field(..., primary_key=True)
-    owner: int = Field(..., ForeignKey("users.id"), index=True)
     deleted: bool = False
 
     class Config:
@@ -107,7 +111,6 @@ def user_id_expr(*, user_id: int = None, username: str = None):
         )
 
 
-
 class CollectionQuery(Query):
     def __init__(
         self,
@@ -157,20 +160,17 @@ class CollectionQuery(Query):
         return self.order_by(collection.c.title)
 
 
+@convert_error
 async def create_collection(
     database: Database,
-    user_id: int,
-    collection: CollectionCreate,
-) -> int:
-    """Creates a collection, returns its id."""
+    collection: Union[CollectionCreate, CollectionDb],
+) -> CollectionDb:
+    """Creates a collection, returns it."""
 
-    id = await database.execute(
-        _create_collection,
-        dict(
-            **collection.dict(),
-            owner = user_id,
-        ),
-    )
+    params = collection.dict(exclude={"id"})
+    params.setdefault("deleted", False)
+
+    id = await database.execute(_create_collection, params)
 
     await link_user_to_collection(
         database,
@@ -178,27 +178,21 @@ async def create_collection(
         id,
     )
 
-    return id
-
-
-async def create_collections(
-    database: Database,
-    *collections: CollectionDb,
-):
-    await database.execute_many(
-        _create_collection,
-        [collection.dict() for collection in collections],
+    return CollectionDb(
+        id = id,
+        **params,
     )
-    await database.execute_many(
-        _create_user_collection,
-        [
-            dict(
-                user_id = collection.owner,
-                collection_id = collection.id,
-                can_edit = True,
-            )
-            for collection in collections
-        ],
+
+
+async def update_collection(
+    database: Database,
+    collection: CollectionDb,
+) -> None:
+    """Updates a collection."""
+
+    await database.execute(
+        collection.update(),
+        collection.dict(),
     )
 
 

@@ -17,10 +17,11 @@
 
 from databases import Database
 
-from .user import UserDb, create_users
+from .user import UserDb, UserCreate, create_user
 from .collection import (
     CollectionDb,
-    create_collections,
+    CollectionCreate,
+    create_collection,
     link_user_to_collection,
 )
 
@@ -31,24 +32,27 @@ class Builder:
         self.collections = []
 
     def add_user(self, **kwargs):
-        if "id" not in kwargs:
-            kwargs["id"] = len(self.users) + 1
-
-        user = UserDb(**kwargs)
+        user = UserDb(
+            id = len(self.users) + 1,
+            **kwargs,
+        )
         self.users.append(user)
         return user
 
     def add_collection(self, **kwargs):
-        if "id" not in kwargs:
-            kwargs["id"] = len(self.collections) + 1
-
-        collection = CollectionDb(**kwargs)
+        collection = CollectionDb(
+            id = len(self.collections) + 1,
+            **kwargs,
+        )
         self.collections.append(collection)
         return collection
 
     async def fill_database(self, database: Database):
-        await create_users(database, *self.users)
-        await create_collections(database, *self.collections)
+        for user in self.users:
+            await create_user(database, user)
+
+        for collection in self.collections:
+            await create_collection(database, collection)
 
 
 builder = Builder()

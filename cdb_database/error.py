@@ -15,7 +15,41 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from typing import Callable
+from functools import wraps
+from asyncio import iscoroutinefunction
 
-class NotFoundError(RuntimeError):
+import asyncpg
+
+
+class CdbDatabaseError(RuntimeError):
     def __init__(self, *args):
         super().__init__(*args)
+
+
+class NotFoundError(CdbDatabaseError):
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
+class AlreadyExistsError(CdbDatabaseError):
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
+def convert_error(func: Callable):
+    if iscoroutinefunction(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            try:
+                return await func(*args, **kwargs)
+            except asyncpg.exceptions.UniqueViolationError:
+                raise AlreadyExistsError("Resource already exists")
+    else:
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except asyncpg.exceptions.UniqueViolationError:
+                raise AlreadyExistsError("Resource already exists")
+    return wrapper
