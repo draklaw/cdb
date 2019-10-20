@@ -15,10 +15,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from pydantic import ConstrainedStr
+from typing import Any
+
+from pydantic import ConstrainedStr, SecretStr
+
+# Schema has been renamed Field in recent version of pydantic
+try:
+    from pydantic import PydanticField
+except ImportError:
+    from pydantic import Schema as PydanticField
+
 from sqlalchemy import (
     MetaData, Table, Column,
-    Boolean, Integer, Float, String,
+    Boolean, Integer, Float, Unicode, UnicodeText,
 )
 
 
@@ -26,13 +35,58 @@ metadata = MetaData()
 
 
 _type_map = [
-    (ConstrainedStr, lambda f: String(f.type_.max_length)),
+    (ConstrainedStr, lambda f: Unicode(f.type_.max_length)),
+    (SecretStr, lambda f: UnicodeText),
 
     (bool, lambda f: Boolean),
-    (str, lambda f: String),
+    (str, lambda f: UnicodeText),
     (float, lambda f: Float),
     (int, lambda f: Integer),
 ]
+
+
+class Field(PydanticField):
+    """Similar to Pydantic's Field, but with arbitrary positional args."""
+
+    def __init__(
+        self,
+        default: Any,
+        *args,
+        alias: str = None,
+        title: str = None,
+        description: str = None,
+        const: bool = None,
+        gt: float = None,
+        ge: float = None,
+        lt: float = None,
+        le: float = None,
+        multiple_of: float = None,
+        min_items: int = None,
+        max_items: int = None,
+        min_length: int = None,
+        max_length: int = None,
+        regex: str = None,
+        **extra: Any,
+    ):
+        super().__init__(
+            default,
+            alias = alias,
+            title = title,
+            description = description,
+            const = const,
+            gt = gt,
+            ge = ge,
+            lt = lt,
+            le = le,
+            multiple_of = multiple_of,
+            min_items = min_items,
+            max_items = max_items,
+            min_length = min_length,
+            max_length = max_length,
+            regex = regex,
+            args = args,
+            **extra,
+        )
 
 
 def sa_type_from_field(field):
@@ -46,13 +100,15 @@ def sa_type_from_field(field):
     raise TypeError(f"No mapping for type {field.type_}")
 
 
-def create_table(cls):
-    name = cls.__name__.lower()
+def create_table(name, cls):
+    sa_args = []
+    if hasattr(cls.__config__, "sql_alchemy"):
+        sa_args = cls.__config__.sql_alchemy
 
     columns = [
         create_column(field)
         for field in cls.__fields__.values()
-    ]
+    ] + sa_args
 
     return Table(name, metadata, *columns)
 
@@ -62,10 +118,11 @@ def create_column(field):
 
     # schema will be renamed field_info in future pydantic
     extra = field.schema.extra
-    args = {**extra}
+    kwargs = {**extra}
+    args = kwargs.pop("args", [])
     if field.required or field.default is not None:
-        args["nullable"] = False
+        kwargs["nullable"] = False
     if field.default is not None:
-        args["default"] = field.default
+        kwargs["default"] = field.default
 
-    return Column(field.name, type, **args)
+    return Column(field.name, type, *args, **kwargs)

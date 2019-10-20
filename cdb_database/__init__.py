@@ -18,6 +18,7 @@
 from . import (
     schema,
     user,
+    collection,
 )
 
 

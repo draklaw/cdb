@@ -15,16 +15,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import logging
+
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.status import HTTP_404_NOT_FOUND
 from fastapi import FastAPI
 
-from . import settings, user
+from . import settings, user, collection
 from .db import database
 
 from cdb_database.error import NotFoundError
 
+
+logger = logging.getLogger("cdb")
 
 app = FastAPI(
     title = "CDB",
@@ -35,10 +39,11 @@ app = FastAPI(
 )
 
 app.include_router(user.router)
-
+app.include_router(collection.router)
 
 @app.on_event("startup")
 async def connect_to_database():
+    logger.info(f"Connect to database {settings.database_url!r}...")
     await database.connect()
 
 
@@ -55,6 +60,6 @@ async def convert_db_exceptions(request: Request, call_next):
         return JSONResponse(
             status_code = HTTP_404_NOT_FOUND,
             content = dict(
-                detail = str(err)
+                detail = f"Ressource {request.url} does not exists",
             )
         )

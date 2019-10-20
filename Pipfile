@@ -15,7 +15,8 @@ sqlalchemy = "*"
 fastapi = "*"
 uvicorn = "*"
 aiofiles = "*"
-databases = {extras = ["sqlite"],version = "*"}
+databases = {extras = ["postgresql"],version = "*"}
 passlib = {extras = ["bcrypt"],version = "*"}
 pyjwt = "*"
 python-multipart = "*"
+python-dotenv = "*"

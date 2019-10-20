@@ -33,6 +33,16 @@ app.mount("/static", static_files, name="static")
 app.mount("/api", cdb_api.app)
 
 
+@app.on_event("startup")
+async def startup():
+    await cdb_api.app.router.lifespan.startup()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    await cdb_api.app.router.lifespan.shutdown()
+
+
 @app.route("/")
 async def index(request: Request):
     path, _ = await static_files.lookup_path("index.html")
@@ -44,6 +54,7 @@ async def index(request: Request):
         stylesheet=request.url_for("static", path="/style.css"),
         main_js=request.url_for("static", path="/cdb.js")
     ))
+app.add_route("/{path:path}", index)
 
 
 if __name__ == "__main__":

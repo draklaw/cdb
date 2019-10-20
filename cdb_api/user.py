@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime, timedelta
 
 from passlib.context import CryptContext
@@ -49,6 +49,14 @@ class UserInput(user_db.UserBase):
     password: SecretStr
 
 
+class UserPublic(BaseModel):
+    id: int = ...
+    username: str = ...
+    email: str = None
+    is_admin: bool = None
+    disabled: bool = None
+
+
 def hash_password(password: str) -> str:
     return password_context.hash(password)
 
@@ -76,10 +84,15 @@ async def authenticate_user(
     password: str,
 ) -> Optional[user_db.UserDb]:
     try:
-        user = await user_db.get_user(db, username=username)
+        user = await (
+            user_db.UserQuery(db)
+            .with_username(username=username)
+            .one()
+        )
     except NotFoundError:
         return None
-    if verify_password(password, user.hashed_password):
+
+    if verify_password(password, user.hashed_password.get_secret_value()):
         return user
     return None
 
@@ -99,7 +112,7 @@ async def get_current_user_unchecked(
         user_id = None
 
     if user_id is not None:
-        user = await user_db.get_user(db, id=user_id)
+        user = await user_db.UserQuery(db).with_id(user_id).one()
     else:
         user = None
 
@@ -148,6 +161,12 @@ current_user = Depends(get_current_user)
 current_admin = Depends(get_current_admin)
 
 
+def strip_user_info(user):
+    return UserPublic(
+        **user.dict(include={"id", "username"})
+    )
+
+
 @router.post(
     "/token",
     response_model = Token,
@@ -192,24 +211,49 @@ async def login(
 
 
 @router.get(
-    "/user/me",
-    response_model = user_db.UserPublic,
+    "/users",
+    response_model = List[UserPublic],
+    response_model_skip_defaults = True,
     tags = ["users"],
-    summary = "Get the user currently logged in",
+    summary = "Get the list of all users",
 )
-def get_logged_user(user: user_db.UserDb = current_user):
-    return user
+async def get_users(
+    user: user_db.UserDb = current_user,
+    db: Database = transaction,
+):
+    users = await (
+        user_db.UserQuery(db, include_disabled=user.is_admin)
+        .order_by_username()
+        .all()
+    )
+
+    if not user.is_admin:
+        users = list(map(strip_user_info, users))
+
+    return users
 
 
 @router.get(
-    "/user/{username}",
-    response_model = user_db.UserPublic,
+    "/users/{username}",
+    response_model = UserPublic,
+    response_model_skip_defaults = True,
     tags = ["users"],
     summary = "Get the user with the given username",
 )
 async def get_user(
     username: str,
-    user: user_db.UserDb = current_admin,
+    user: user_db.UserDb = current_user,
     db: Database = transaction,
 ):
-    return await user_db.get_user(db, username=username)
+    target_user = await (
+        user_db.UserQuery(db, include_disabled=user.is_admin)
+        .with_username(username=username)
+        .one()
+    )
+
+    if target_user.id == user.id:
+        del target_user.disabled
+    elif not user.is_admin:
+        target_user = strip_user_info(target_user)
+
+    return target_user

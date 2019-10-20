@@ -16,34 +16,25 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from typing import Union
-from pydantic import BaseModel
-
-# Schema has been renamed Field in recent version of pydantic
-try:
-    from pydantic import Field
-except ImportError:
-    from pydantic import Schema as Field
+from pydantic import BaseModel, SecretStr
 
 from sqlalchemy import (
-    String,
+    Unicode,
     bindparam,
 )
 from databases import Database
 
-from .schema import create_table
-from .error import NotFoundError
+from .schema import Field, create_table
+from .query import Query
 
 
 class UserBase(BaseModel):
     """Base class for users.
     """
 
-    username: str = Field(...,
-                          min_length=3, max_length=64,
-                          unique=True, index=True)
-    email: str = Field(..., max_length=128, unique=True, index=True)
+    username: str = Field(..., unique=True)
+    email: str = Field(..., unique=True)
     is_admin: bool = False
-    disabled: bool = False
 
 
 class UserCreate(UserBase):
@@ -51,7 +42,12 @@ class UserCreate(UserBase):
     in the DB.
     """
 
-    hashed_password: str = Field(..., max_length=128)
+    hashed_password: SecretStr = ...
+
+    def unwrapped_dict(self) -> dict:
+        d = self.dict()
+        d["hashed_password"] = d["hashed_password"].get_secret_value()
+        return d
 
 
 class UserDb(UserCreate):
@@ -59,32 +55,55 @@ class UserDb(UserCreate):
     """
 
     id: int = Field(..., primary_key=True)
+    disabled: bool = False
 
 
-class UserPublic(UserBase):
-    """A user without password field, can be exposed publicly (e.g. through an
-    api.
-    """
-
-    id: int
-
-
-user = create_table(UserDb)
+user = create_table("users", UserDb)
 
 
 _create_user = user.insert()
 _user_by_id = (
     user.select()
-        .where(user.c.id == bindparam("id", type_=String))
+        .where(user.c.id == bindparam("id", type_=Unicode))
 )
-_user_by_username = (
-    user.select()
-        .where(user.c.username == bindparam("username", type_=String))
-)
-_user_by_email = (
-    user.select()
-        .where(user.c.email == bindparam("email", type_=String))
-)
+
+
+class UserQuery(Query):
+    def __init__(
+        self,
+        database: Database,
+        *,
+        include_disabled = False,
+    ):
+        super().__init__(
+            database,
+            user,
+            wrapper = UserDb,
+        )
+
+        self._include_disabled = include_disabled
+
+    def query(self):
+        query = super().query()
+        if not self._include_disabled:
+            query = query.where(~user.c.disabled)
+        return query
+
+    def include_disabled(self) -> "UserQuery":
+        self._include_disabled = True
+        return self
+
+    def with_id(self, id: int) -> "UserQuery":
+        return self.where(user.c.id == id)
+
+    def with_username(self, username: str) -> "UserQuery":
+        return self.where(user.c.username == username)
+
+    def with_email(self, email: str) -> "UserQuery":
+        return self.where(user.c.email == email)
+
+    def order_by_username(self) -> "UserQuery":
+        return self.order_by(user.c.username)
 
 
 async def create_user(
@@ -96,7 +115,7 @@ async def create_user(
 
     return await database.execute(
         _create_user,
-        user[0].dict(),
+        user[0].unwrapped_dict(),
     )
 
 
@@ -109,44 +128,5 @@ async def create_users(
 
     await database.execute_many(
         _create_user,
-        [user.dict() for user in users],
+        [user.unwrapped_dict() for user in users],
     )
-
-
-async def get_user(
-    database: Database,
-    *,
-    id: int = None,
-    username: str = None,
-    email: str = None,
-) -> UserDb:
-    """Get a user (UserDb). One of the keyword parameters must be set.
-    """
-
-    count = sum(param is not None for param in (id, username, email))
-    if count != 1:
-        raise TypeError(
-            f"get_user() should have exactly one of id, username or email set "
-            f"({count} set)"
-        )
-
-    if id is not None:
-        row = await database.fetch_one(
-            _user_by_id.params(id=id)
-        )
-        if row is None:
-            raise NotFoundError(f"User with id {id} not found")
-    elif username is not None:
-        row = await database.fetch_one(
-            _user_by_username.params(username=username)
-        )
-        if row is None:
-            raise NotFoundError(f"User with username '{username}' not found")
-    elif email is not None:
-        row = await database.fetch_one(
-            _user_by_email.params(email=email)
-        )
-        if row is None:
-            raise NotFoundError(f"User with email '{email}' not found")
-
-    return UserDb(**row)

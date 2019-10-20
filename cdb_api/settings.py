@@ -25,18 +25,18 @@ config = Config(".env")
 debug = config(
     "CDB_DEBUG",
     cast = bool,
-    default = False
+    default = False,
 )
 
 api_prefix = config(
     "CDB_API_PREFIX",
     cast = str,
-    default = "/api"
+    default = "/api",
 )
 
 database_url = config(
     "CDB_DATABASE",
-    cast = databases.DatabaseURL
+    cast = databases.DatabaseURL,
 )
 
 access_token_duration_in_minutes = config(

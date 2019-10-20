@@ -15,16 +15,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import os
 import asyncio
 import pytest
 from sqlalchemy import create_engine
 from databases import Database
+from dotenv import load_dotenv
 
 from cdb_database import create_tables, drop_tables
 from cdb_database.test_db import fill_test_db
 
 
-DB_URL = "sqlite:///test.db"
+load_dotenv()
 
 
 @pytest.yield_fixture(scope="module")
@@ -37,11 +39,13 @@ def event_loop(request):
 
 @pytest.fixture(scope="module")
 async def raw_database():
-    engine = create_engine(DB_URL, connect_args={"check_same_thread": False})
+    db_url = os.getenv("CDB_TEST_DATABASE")
+
+    engine = create_engine(db_url)
     drop_tables(engine)
     create_tables(engine)
 
-    async with Database(DB_URL) as database:
+    async with Database(db_url) as database:
         await fill_test_db(database)
         yield database
 
