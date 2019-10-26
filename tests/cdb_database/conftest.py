@@ -19,10 +19,9 @@ import os
 import asyncio
 import pytest
 from sqlalchemy import create_engine
-from databases import Database
 from dotenv import load_dotenv
 
-from cdb_database import create_tables, drop_tables
+from cdb_database import Database, create_tables, drop_tables
 from cdb_database.test_db import fill_test_db
 
 

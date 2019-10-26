@@ -15,11 +15,41 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import databases
+
 from . import (
     schema,
     user,
     collection,
 )
+from .error import NotFoundError
+
+
+def _identity(row):
+    return row
+
+
+class Database(databases.Database):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    async def one(self, query, wrapper=_identity):
+        rows = await super().fetch_all(query)
+
+        assert len(rows) < 2
+
+        if not rows:
+            raise NotFoundError("Collection does not exist.")
+
+        return wrapper(rows[0])
+
+    async def all(self, query, wrapper=_identity):
+        rows = await super().fetch_all(query)
+
+        return [
+            wrapper(row)
+            for row in rows
+        ]
 
 
 def create_tables(engine):

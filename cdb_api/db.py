@@ -15,8 +15,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from databases import Database
 from fastapi import Depends
+
+from cdb_database import Database
 
 from . import settings
 

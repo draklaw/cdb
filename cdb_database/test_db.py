@@ -90,6 +90,12 @@ admin_private_col = builder.add_collection(
     title = "Nobody can see this but me",
 )
 
+admin_shared_col = builder.add_collection(
+    owner = admin_user.id,
+    name = "shared",
+    title = "Private but shared with test",
+)
+
 admin_public_col = builder.add_collection(
     owner = admin_user.id,
     name = "public",
@@ -117,6 +123,13 @@ test_deleted_col = builder.add_collection(
     deleted = True,
 )
 
+disabled_public_col = builder.add_collection(
+    owner = disabled_user.id,
+    name = "public",
+    title = "Public collection",
+    public = True,
+)
+
 
 async def fill_test_db(database: Database):
     await builder.fill_database(database)
@@ -124,6 +137,6 @@ async def fill_test_db(database: Database):
     await link_user_to_collection(
         database,
         test_user.id,
-        admin_private_col.id,
+        admin_shared_col.id,
         can_edit = False
     )

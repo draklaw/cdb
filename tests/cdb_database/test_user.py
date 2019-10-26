@@ -18,7 +18,8 @@
 import pytest
 from cdb_database.user import (
     UserDb,
-    UserQuery,
+    get_user,
+    get_users,
 )
 from cdb_database.error import NotFoundError
 from cdb_database.test_db import (
@@ -30,37 +31,36 @@ pytestmark = pytest.mark.asyncio
 
 
 async def test_get_user_by_id(database):
-    user = await UserQuery(database).with_id(admin_user.id).one()
+    user = await get_user(database, user_id=admin_user.id)
     assert user.unwrapped_dict() == admin_user.unwrapped_dict()
 
 
 async def test_get_user_by_username(database):
-    user = await UserQuery(database).with_username(test_user.username).one()
+    user = await get_user(database, username=test_user.username)
     assert user.unwrapped_dict() == test_user.unwrapped_dict()
 
 
 async def test_get_user_by_email(database):
-    user = await UserQuery(database).with_email(test_user.email).one()
+    user = await get_user(database, email=test_user.email)
     assert user.unwrapped_dict() == test_user.unwrapped_dict()
 
 
 async def test_get_disabled_user_fail(database):
     with pytest.raises(NotFoundError):
-        await UserQuery(database).with_id(disabled_user.id).one()
+        await get_user(database, user_id=disabled_user.id)
 
 
 async def test_get_disabled_user_explicitly(database):
-    user = await (
-        UserQuery(database)
-        .include_disabled()
-        .with_id(disabled_user.id)
-        .one()
+    user = await get_user(
+        database,
+        user_id = disabled_user.id,
+        include_disabled = True,
     )
     assert user.unwrapped_dict() == disabled_user.unwrapped_dict()
 
 
 async def test_get_all_active_users(database):
-    users = await UserQuery(database).order_by_username().all()
+    users = await get_users(database)
 
     unwrapped_users = list(map(UserDb.unwrapped_dict, users))
     expected = list(map(UserDb.unwrapped_dict, [
@@ -72,11 +72,7 @@ async def test_get_all_active_users(database):
 
 
 async def test_get_all_users(database):
-    users = await (
-        UserQuery(database, include_disabled=True)
-        .order_by_username()
-        .all()
-    )
+    users = await get_users(database, include_disabled=True)
 
     unwrapped_users = list(map(UserDb.unwrapped_dict, users))
     expected = list(map(UserDb.unwrapped_dict, [

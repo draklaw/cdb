@@ -84,11 +84,7 @@ async def authenticate_user(
     password: str,
 ) -> Optional[user_db.UserDb]:
     try:
-        user = await (
-            user_db.UserQuery(db)
-            .with_username(username=username)
-            .one()
-        )
+        user = await user_db.get_user(db, username=username)
     except NotFoundError:
         return None
 
@@ -112,7 +108,7 @@ async def get_current_user_unchecked(
         user_id = None
 
     if user_id is not None:
-        user = await user_db.UserQuery(db).with_id(user_id).one()
+        user = await user_db.get_user(db, user_id=user_id)
     else:
         user = None
 
@@ -221,10 +217,9 @@ async def get_users(
     user: user_db.UserDb = current_user,
     db: Database = transaction,
 ):
-    users = await (
-        user_db.UserQuery(db, include_disabled=user.is_admin)
-        .order_by_username()
-        .all()
+    users = await user_db.get_users(
+        db,
+        include_disabled = user.is_admin,
     )
 
     if not user.is_admin:
@@ -245,10 +240,10 @@ async def get_user(
     user: user_db.UserDb = current_user,
     db: Database = transaction,
 ):
-    target_user = await (
-        user_db.UserQuery(db, include_disabled=user.is_admin)
-        .with_username(username=username)
-        .one()
+    target_user = await user_db.get_user(
+        db,
+        username = username,
+        include_disabled = user.is_admin,
     )
 
     if target_user.id == user.id:

@@ -15,56 +15,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Callable
 
-from databases import Database
-from sqlalchemy import select
-
-from .error import NotFoundError
-
-
-class Query:
-    def __init__(
-        self,
-        database: Database,
-        *columns: list,
-        wrapper: Callable = None,
-    ):
-        self._database = database
-        self._query = select(columns)
-        self._wrapper = wrapper
-
-    def where(self, predicate):
-        self._query = self._query.where(predicate)
-        return self
-
-    def order_by(self, *clauses):
-        self._query = self._query.order_by(*clauses)
-        return self
-
-    def print_sql(self):
-        compiled = self.query().compile()
-        print(compiled)
-        print(compiled.params)
-        return self
-
-    def query(self):
-        return self._query
-
-    def _wrap_result(self, row, *, wrapper=None):
-        wrapper = wrapper or self._wrapper
-        if wrapper:
-            return self._wrapper(**row)
-        return row
-
-    async def one(self, *, wrapper=None):
-        row = await self._database.fetch_one(self.query())
-        if row is None:
-            raise NotFoundError("Ressource does not exists")
-        return self._wrap_result(row, wrapper=wrapper)
-
-    async def all(self, *, wrapper=None):
-        return list(map(
-            lambda row: self._wrap_result(row, wrapper=wrapper),
-            await self._database.fetch_all(self.query()),
-        ))
+def print_query(query):
+    compiled = query.compile()
+    print(compiled)
+    print(compiled.params)

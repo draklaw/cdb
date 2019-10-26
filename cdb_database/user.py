@@ -15,17 +15,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Union
+from typing import List, Union
 from pydantic import BaseModel, SecretStr
 
 from sqlalchemy import (
-    Unicode,
-    bindparam,
+    select,
 )
 from databases import Database
 
 from .schema import Field, create_table
-from .query import Query
 
 
 class UserBase(BaseModel):
@@ -35,6 +33,10 @@ class UserBase(BaseModel):
     username: str = Field(..., unique=True)
     email: str = Field(..., unique=True)
     is_admin: bool = False
+
+    @classmethod
+    def from_row(cls, row):
+        return cls(**row)
 
 
 class UserCreate(UserBase):
@@ -58,52 +60,7 @@ class UserDb(UserCreate):
     disabled: bool = False
 
 
-user = create_table("users", UserDb)
-
-
-_create_user = user.insert()
-_user_by_id = (
-    user.select()
-        .where(user.c.id == bindparam("id", type_=Unicode))
-)
-
-
-class UserQuery(Query):
-    def __init__(
-        self,
-        database: Database,
-        *,
-        include_disabled = False,
-    ):
-        super().__init__(
-            database,
-            user,
-            wrapper = UserDb,
-        )
-
-        self._include_disabled = include_disabled
-
-    def query(self):
-        query = super().query()
-        if not self._include_disabled:
-            query = query.where(~user.c.disabled)
-        return query
-
-    def include_disabled(self) -> "UserQuery":
-        self._include_disabled = True
-        return self
-
-    def with_id(self, id: int) -> "UserQuery":
-        return self.where(user.c.id == id)
-
-    def with_username(self, username: str) -> "UserQuery":
-        return self.where(user.c.username == username)
-
-    def with_email(self, email: str) -> "UserQuery":
-        return self.where(user.c.email == email)
-
-    def order_by_username(self) -> "UserQuery":
-        return self.order_by(user.c.username)
+users = create_table("users", UserDb)
 
 
 async def create_user(
@@ -114,6 +71,66 @@ async def create_user(
 
     params = user.unwrapped_dict(exclude={"id"})
     params.setdefault("disabled", False)
-    id = await database.execute(_create_user, params)
+    id = await database.execute(users.insert(), params)
 
     return UserDb(id=id, **params)
+
+
+def get_user_query(
+    *,
+    include_disabled: bool = False
+):
+    query = select([users])
+
+    if not include_disabled:
+        query = query.where(~users.c.disabled)
+
+    return query
+
+
+async def get_user(
+    database: Database,
+    *,
+    user_id: int = None,
+    username: str = None,
+    email: str = None,
+    include_disabled: bool = False,
+) -> UserDb:
+
+    arg_sum = (
+        int(user_id is not None)
+        + int(username is not None)
+        + int(email is not None)
+    )
+    if arg_sum != 1:
+        raise TypeError("get_user: invalid arguments")
+
+    query = get_user_query(
+        include_disabled = include_disabled,
+    )
+
+    if user_id is not None:
+        query = query.where(users.c.id == user_id)
+    elif username is not None:
+        query = query.where(users.c.username == username)
+    else:
+        query = query.where(users.c.email == email)
+
+    return await database.one(query, UserDb.from_row)
+
+
+async def get_users(
+    database: Database,
+    *,
+    include_disabled: bool = False,
+    order_by_username: bool = True,
+) -> List[UserDb]:
+
+    query = get_user_query(
+        include_disabled = include_disabled,
+    )
+
+    if order_by_username:
+        query = query.order_by(users.c.username)
+
+    return await database.all(query, UserDb.from_row)

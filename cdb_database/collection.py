@@ -15,19 +15,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Union
+from typing import List, Mapping, Union
 from pydantic import BaseModel
 
 from sqlalchemy import (
-    select,
+    select, and_, or_,
     ForeignKey, PrimaryKeyConstraint, UniqueConstraint,
 )
 from databases import Database
 
 from .schema import Field, create_table
 from .error import convert_error
-from .query import Query
-from .user import user
+from .user import users, UserDb
 
 
 class CollectionIn(BaseModel):
@@ -77,87 +76,23 @@ class Collection(CollectionDb):
     user_id: int = ...
     can_edit: bool = True
 
+    @classmethod
+    def from_row(cls, user, row):
+        col_dict = dict(**row)
 
-collection = create_table("collections", CollectionDb)
-user_collection = create_table("user_collections", UserCollection)
+        if col_dict["user_id"] is None:
+            col_dict["user_id"] = user.id
+            col_dict["can_edit"] = user.is_admin
 
+        return Collection(**col_dict)
 
-# _id = bindparam("id", type_=Unicode)
-# _name = bindparam("name", type_=Unicode)
-# _user_id = bindparam("user_id", type_=Integer)
-# _username = bindparam("username", type_=Integer)
-
-# _user_id_by_username = (
-#     user.select(user.c.id)
-#     .where(user.c.username == _username)
-#     .alias()
-# )
-
-_create_collection = collection.insert()
-_create_user_collection = user_collection.insert()
+    @classmethod
+    def wrapper(cls, user):
+        return lambda row: cls.from_row(user, row)
 
 
-def user_id_expr(*, user_id: int = None, username: str = None):
-    if int(user_id is not None) + int(username is not None) != 1:
-        raise TypeError("user_id_exp: either user_id or username must be set")
-
-    if user_id is not None:
-        return user_id
-    else:
-        return (
-            select([user.c.id])
-            .where(user.c.username == username)
-            .alias()
-        )
-
-
-class CollectionQuery(Query):
-    def __init__(
-        self,
-        database: Database,
-        *,
-        user_id: int = None,
-        username: str = None,
-        include_deleted = False,
-    ):
-        super().__init__(
-            database,
-            user_collection,
-            collection,
-            wrapper = Collection,
-        )
-
-        self._include_deleted = include_deleted
-
-        self.where(user_collection.c.collection_id == collection.c.id)
-
-        user_expr = user_id_expr(user_id=user_id, username=username)
-        self.where(user_collection.c.user_id == user_expr)
-
-    def query(self):
-        query = super().query()
-        if not self._include_deleted:
-            query = query.where(~collection.c.deleted)
-        return query
-
-    def only_owned(self):
-        return self.where(user_collection.c.user_id == collection.c.owner)
-
-    def only_public(self) -> "CollectionQuery":
-        return self.where(collection.c.public)
-
-    def include_deleted(self) -> "CollectionQuery":
-        self._include_deleted = True
-        return self
-
-    def with_id(self, id: int) -> "CollectionQuery":
-        return self.where(collection.c.id == id)
-
-    def with_name(self, name: str) -> "CollectionQuery":
-        return self.where(collection.c.name == name)
-
-    def order_by_title(self) -> "CollectionQuery":
-        return self.order_by(collection.c.title)
+collections = create_table("collections", CollectionDb)
+user_collections = create_table("user_collections", UserCollection)
 
 
 @convert_error
@@ -170,7 +105,7 @@ async def create_collection(
     params = collection.dict(exclude={"id"})
     params.setdefault("deleted", False)
 
-    id = await database.execute(_create_collection, params)
+    id = await database.execute(collections.insert(), params)
 
     await link_user_to_collection(
         database,
@@ -184,18 +119,6 @@ async def create_collection(
     )
 
 
-async def update_collection(
-    database: Database,
-    collection: CollectionDb,
-) -> None:
-    """Updates a collection."""
-
-    await database.execute(
-        collection.update(),
-        collection.dict(),
-    )
-
-
 async def link_user_to_collection(
     database: Database,
     user_id = int,
@@ -203,7 +126,7 @@ async def link_user_to_collection(
     can_edit = True,
 ) -> int:
     return await database.execute(
-        _create_user_collection,
+        user_collections.insert(),
         dict(
             user_id = user_id,
             collection_id = collection_id,
@@ -212,6 +135,119 @@ async def link_user_to_collection(
     )
 
 
-async def get_collection(database: Database, *, id: int) -> CollectionDb:
-    query = Query(database, collection, wrapper=CollectionDb)
-    return await query.where(collection.c.id == id).one()
+def get_user_query(
+    *,
+    user_id: int = None,
+    username: str = None,
+    include_disabled: bool = False,
+):
+    if int(user_id is not None) + int(username is not None) != 1:
+        raise TypeError("get_user_query: either user_id or username must be set")
+
+    query = select([users])
+
+    if user_id is not None:
+        query = query.where(users.c.id == user_id)
+    else:
+        query = query.where(users.c.username == username)
+
+    if not include_disabled:
+        query = query.where(~users.c.disabled)
+
+    return query
+
+
+def get_user_collections_query(
+    user: UserDb,
+    *,
+    user_id: int = None,
+    username: str = None,
+    only_owned: bool = True,
+    include_deleted: bool = False,
+):
+    tgt_user = get_user_query(
+        user_id = user_id,
+        username = username,
+        include_disabled = user.is_admin,
+    ).with_only_columns([users.c.id]).alias()
+
+    query = (
+        select([collections, user_collections])
+        .select_from(
+            collections.outerjoin(
+                user_collections,
+                and_(
+                    collections.c.id == user_collections.c.collection_id,
+                    user_collections.c.user_id == user.id,
+                )
+            )
+        )
+    )
+
+    if not user.is_admin:
+        query = query.where(
+            or_(
+                tgt_user.c.id == user.id,
+                collections.c.public,
+                user_collections.c.user_id != None,
+            )
+        )
+
+    if only_owned:
+        query = query.where(collections.c.owner == tgt_user.c.id)
+    else:
+        query = query.where(user_collections.c.user_id == tgt_user.c.id)
+
+    if not include_deleted:
+        query = query.where(~collections.c.deleted)
+
+    return query
+
+
+async def get_collection(
+    database: Database,
+    user: UserDb,
+    *,
+    user_id: int = None,
+    username: str = None,
+    collection_name: str = None,
+    only_owned: bool = True,
+    include_deleted: bool = False,
+) -> Collection:
+
+    query = get_user_collections_query(
+        user,
+        user_id = user_id,
+        username = username,
+        only_owned = only_owned,
+        include_deleted = include_deleted,
+    )
+
+    query = query.where(collections.c.name == collection_name)
+
+    return await database.one(query, Collection.wrapper(user))
+
+
+async def get_collections(
+    database: Database,
+    user: UserDb,
+    *,
+    user_id: int = None,
+    username: str = None,
+    only_owned: bool = True,
+    include_deleted: bool = False,
+    order_by_title: bool = True,
+) -> List[Collection]:
+
+    query = get_user_collections_query(
+        user,
+        user_id = user_id,
+        username = username,
+        only_owned = only_owned,
+        include_deleted = include_deleted,
+    )
+
+    if order_by_title:
+        query = query.order_by(collections.c.title)
+
+    return await database.all(query, Collection.wrapper(user))

@@ -17,40 +17,39 @@
 
 import pytest
 
-from cdb_database.error import AlreadyExistsError
+from cdb_database.error import AlreadyExistsError, NotFoundError
 from cdb_database.collection import (
     CollectionCreate,
     CollectionDb,
     Collection,
-    CollectionQuery,
     create_collection,
     get_collection,
+    get_collections,
 )
 from cdb_database.test_db import (
     builder,
     admin_user,
     test_user,
+    disabled_user,
     admin_public_col,
     admin_private_col,
+    admin_shared_col,
     test_test_col,
     test_public_col,
     test_deleted_col,
+    disabled_public_col,
 )
 
 
 pytestmark = pytest.mark.asyncio
 
 
-async def test_get_collection_by_id(database):
-    collection = await get_collection(database, id=test_test_col.id)
-    assert collection == test_test_col
-
-
-async def test_get_collection_by_user_id_and_name(database):
-    collection = await (
-        CollectionQuery(database, user_id=test_user.id)
-        .with_name(test_test_col.name)
-        .one()
+async def test_get_owned_private_collection_by_user_id_and_name(database):
+    collection = await get_collection(
+        database,
+        test_user,
+        user_id = test_user.id,
+        collection_name = test_test_col.name,
     )
 
     expected = Collection(
@@ -62,11 +61,12 @@ async def test_get_collection_by_user_id_and_name(database):
     assert collection == expected
 
 
-async def test_get_collection_by_username_and_name(database):
-    collection = await (
-        CollectionQuery(database, username=admin_user.username)
-        .with_name(admin_private_col.name)
-        .one()
+async def test_get_owned_private_collection_by_username_and_name(database):
+    collection = await get_collection(
+        database,
+        admin_user,
+        username = admin_user.username,
+        collection_name = admin_private_col.name,
     )
 
     expected = Collection(
@@ -78,16 +78,105 @@ async def test_get_collection_by_username_and_name(database):
     assert collection == expected
 
 
-async def test_get_collections_by_user_id(database):
-    collections = await (
-        CollectionQuery(database, user_id=test_user.id)
-        .order_by_title()
-        .all()
+async def test_get_owned_public_collection_by_username_and_name(database):
+    collection = await get_collection(
+        database,
+        admin_user,
+        username = admin_user.username,
+        collection_name = admin_public_col.name,
+    )
+
+    expected = Collection(
+        **admin_public_col.dict(),
+        user_id = admin_user.id,
+        can_edit = True,
+    )
+
+    assert collection == expected
+
+
+async def test_get_other_public_collection_by_username_and_name(database):
+    collection = await get_collection(
+        database,
+        test_user,
+        username = admin_user.username,
+        collection_name = admin_public_col.name,
+    )
+
+    expected = Collection(
+        **admin_public_col.dict(),
+        user_id = test_user.id,
+        can_edit = False,
+    )
+
+    assert collection == expected
+
+
+async def test_get_other_private_collection_by_username_and_name(database):
+    with pytest.raises(NotFoundError):
+        await get_collection(
+            database,
+            test_user,
+            username = admin_user.username,
+            collection_name = admin_private_col.name,
+        )
+
+
+async def test_get_other_shared_collection_by_username_and_name(database):
+    collection = await get_collection(
+        database,
+        test_user,
+        username = admin_user.username,
+        collection_name = admin_shared_col.name,
+    )
+
+    expected = Collection(
+        **admin_shared_col.dict(),
+        user_id = test_user.id,
+        can_edit = False,
+    )
+
+    assert collection == expected
+
+
+async def test_get_other_private_collection_by_username_and_name_as_admin(database):
+    collection = await get_collection(
+        database,
+        admin_user,
+        username = test_user.username,
+        collection_name = test_test_col.name,
+    )
+
+    expected = Collection(
+        **test_test_col.dict(),
+        user_id = admin_user.id,
+        can_edit = True,
+    )
+
+    assert collection == expected
+
+
+async def test_get_owned_collection_by_username_and_name_disabled_user(database):
+    with pytest.raises(NotFoundError):
+        await get_collection(
+            database,
+            disabled_user,
+            username = disabled_user.username,
+            collection_name = disabled_public_col.name,
+        )
+
+
+async def test_get_all_collections_by_user_id(database):
+    collections = await get_collections(
+        database,
+        test_user,
+        user_id = test_user.id,
+        only_owned = False,
     )
 
     expected = [
         Collection(
-            **admin_private_col.dict(),
+            **admin_shared_col.dict(),
             user_id = test_user.id,
             can_edit = False,
         ),
@@ -106,12 +195,13 @@ async def test_get_collections_by_user_id(database):
     assert collections == expected
 
 
-async def test_get_collections_by_user_id_including_deleted(database):
-    collections = await (
-        CollectionQuery(database, user_id=test_user.id)
-        .include_deleted()
-        .order_by_title()
-        .all()
+async def test_get_all_collections_by_user_id_including_deleted(database):
+    collections = await get_collections(
+        database,
+        test_user,
+        user_id = test_user.id,
+        include_deleted = True,
+        only_owned = False,
     )
 
     expected = [
@@ -121,7 +211,7 @@ async def test_get_collections_by_user_id_including_deleted(database):
             can_edit = True,
         ),
         Collection(
-            **admin_private_col.dict(),
+            **admin_shared_col.dict(),
             user_id = test_user.id,
             can_edit = False,
         ),
@@ -140,37 +230,11 @@ async def test_get_collections_by_user_id_including_deleted(database):
     assert collections == expected
 
 
-async def test_get_collections_by_owner_id(database):
-    collections = await (
-        CollectionQuery(database, user_id=admin_user.id)
-        .only_owned()
-        .order_by_title()
-        .all()
-    )
-
-    expected = [
-        Collection(
-            **admin_public_col.dict(),
-            user_id = admin_user.id,
-            can_edit = True,
-        ),
-        Collection(
-            **admin_private_col.dict(),
-            user_id = admin_user.id,
-            can_edit = True,
-        ),
-    ]
-
-    assert collections == expected
-
-
-async def test_get_public_collections_by_owner_id(database):
-    collections = await (
-        CollectionQuery(database, user_id=test_user.id)
-        .only_owned()
-        .only_public()
-        .order_by_title()
-        .all()
+async def test_get_owned_collections_by_user_id(database):
+    collections = await get_collections(
+        database,
+        test_user,
+        user_id = test_user.id,
     )
 
     expected = [
@@ -178,6 +242,34 @@ async def test_get_public_collections_by_owner_id(database):
             **test_public_col.dict(),
             user_id = test_user.id,
             can_edit = True,
+        ),
+        Collection(
+            **test_test_col.dict(),
+            user_id = test_user.id,
+            can_edit = True,
+        ),
+    ]
+
+    assert collections == expected
+
+
+async def test_get_other_owned_collections_by_user_id(database):
+    collections = await get_collections(
+        database,
+        test_user,
+        user_id = admin_user.id,
+    )
+
+    expected = [
+        Collection(
+            **admin_public_col.dict(),
+            user_id = test_user.id,
+            can_edit = False,
+        ),
+        Collection(
+            **admin_shared_col.dict(),
+            user_id = test_user.id,
+            can_edit = False,
         ),
     ]
 

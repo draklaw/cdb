@@ -43,23 +43,12 @@ async def get_collections(
     user: user_db.UserDb = current_user,
     db: Database = transaction,
 ):
-    user_query = user_db.UserQuery(db).with_username(username)
-    if user.is_admin:
-        user_query.include_disabled()
-    target_user = await user_query.one()
-
-    query = (
-        collection_db.CollectionQuery(db, user_id=target_user.id)
-        .order_by_title()
+    return await collection_db.get_collections(
+        db,
+        user,
+        username = username,
+        include_deleted = user.is_admin,
     )
-    query.only_owned()
-
-    if username != user.username and not user.is_admin:
-        query.only_public()
-    if user.is_admin:
-        query.include_deleted()
-
-    return await query.all()
 
 
 @router.post(
@@ -113,23 +102,13 @@ async def get_collection(
     user: user_db.UserDb = current_user,
     db: Database = transaction,
 ):
-    user_query = user_db.UserQuery(db).with_username(username)
-    if user.is_admin:
-        user_query.include_disabled()
-    target_user = await user_query.one()
-
-    query = (
-        collection_db.CollectionQuery(db, user_id=target_user.id)
-        .only_owned()
-        .with_name(collection_name)
+    return await collection_db.get_collection(
+        db,
+        user = user,
+        username = username,
+        collection_name = collection_name,
+        include_deleted = user.is_admin,
     )
-
-    if username != user.username and not user.is_admin:
-        query.only_public()
-    if user.is_admin:
-        query.include_deleted()
-
-    return await query.one()
 
 
 @router.put(
