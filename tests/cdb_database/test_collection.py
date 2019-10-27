@@ -21,10 +21,13 @@ from cdb_database.error import AlreadyExistsError, NotFoundError
 from cdb_database.collection import (
     CollectionCreate,
     CollectionDb,
+    CollectionIn,
     Collection,
     create_collection,
     get_collection,
     get_collections,
+    update_collection,
+    link_user_to_collection,
 )
 from cdb_database.test_db import (
     builder,
@@ -307,3 +310,94 @@ async def test_create_duplicate_collection(database):
 
         with pytest.raises(AlreadyExistsError):
             await create_collection(database, collection)
+
+
+async def test_update_owned_collection(database):
+    async with database.transaction(force_rollback=True):
+        update = CollectionIn(
+            name = "updated",
+            title = "Another title",
+            public = True,
+        )
+
+        await update_collection(
+            database,
+            test_user,
+            value = update,
+            username = test_user.username,
+            collection_name = test_test_col.name,
+        )
+
+        collection = await get_collection(
+            database,
+            test_user,
+            username = test_user.username,
+            collection_name = update.name,
+        )
+
+        expected = Collection(
+            **test_test_col.dict(exclude={"name", "title", "public"}),
+            **update.dict(),
+            user_id = test_user.id,
+            can_edit = True,
+        )
+
+        assert collection == expected
+
+
+async def test_update_shared_collection(database):
+    async with database.transaction(force_rollback=True):
+        await link_user_to_collection(
+            database,
+            test_user.id,
+            admin_private_col.id,
+            can_edit = True,
+        )
+
+        update = CollectionIn(
+            name = "updated",
+            title = "Another title",
+            public = True,
+        )
+
+        await update_collection(
+            database,
+            test_user,
+            value = update,
+            username = admin_user.username,
+            collection_name = admin_private_col.name,
+        )
+
+        collection = await get_collection(
+            database,
+            test_user,
+            username = admin_user.username,
+            collection_name = update.name,
+        )
+
+        expected = Collection(
+            **admin_private_col.dict(exclude={"name", "title", "public"}),
+            **update.dict(),
+            user_id = test_user.id,
+            can_edit = True,
+        )
+
+        assert collection == expected
+
+
+async def test_update_shared_collection_no_edit(database):
+    async with database.transaction(force_rollback=True):
+        update = CollectionIn(
+            name = "updated",
+            title = "Another title",
+            public = True,
+        )
+
+        with pytest.raises(NotFoundError):
+            await update_collection(
+                database,
+                test_user,
+                value = update,
+                username = admin_user.username,
+                collection_name = admin_shared_col.name,
+            )

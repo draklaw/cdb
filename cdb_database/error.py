@@ -37,6 +37,11 @@ class AlreadyExistsError(CdbDatabaseError):
         super().__init__(*args)
 
 
+class ForbiddenError(CdbDatabaseError):
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
 def convert_error(func: Callable):
     if iscoroutinefunction(func):
         @wraps(func)

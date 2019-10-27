@@ -78,9 +78,17 @@ async def create_user(
 
 def get_user_query(
     *,
-    include_disabled: bool = False
+    user_id: int = None,
+    username: str = None,
+    include_disabled: bool = False,
 ):
     query = select([users])
+
+    if user_id is not None:
+        query = query.where(users.c.id == user_id)
+
+    if username is not None:
+        query = query.where(users.c.username == username)
 
     if not include_disabled:
         query = query.where(~users.c.disabled)

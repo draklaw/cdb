@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from typing import List, Mapping, Union
+from typing import List, Union
 from pydantic import BaseModel
 
 from sqlalchemy import (
@@ -25,8 +25,9 @@ from sqlalchemy import (
 from databases import Database
 
 from .schema import Field, create_table
-from .error import convert_error
-from .user import users, UserDb
+from .error import convert_error, ForbiddenError
+from .user import users, UserDb, get_user_query
+from .utils import raise_if_all_none
 
 
 class CollectionIn(BaseModel):
@@ -91,6 +92,10 @@ class Collection(CollectionDb):
         return lambda row: cls.from_row(user, row)
 
 
+class CollectionUpdate(CollectionIn):
+    id: int
+
+
 collections = create_table("collections", CollectionDb)
 user_collections = create_table("user_collections", UserCollection)
 
@@ -135,36 +140,17 @@ async def link_user_to_collection(
     )
 
 
-def get_user_query(
-    *,
-    user_id: int = None,
-    username: str = None,
-    include_disabled: bool = False,
-):
-    if int(user_id is not None) + int(username is not None) != 1:
-        raise TypeError("get_user_query: either user_id or username must be set")
-
-    query = select([users])
-
-    if user_id is not None:
-        query = query.where(users.c.id == user_id)
-    else:
-        query = query.where(users.c.username == username)
-
-    if not include_disabled:
-        query = query.where(~users.c.disabled)
-
-    return query
-
-
 def get_user_collections_query(
     user: UserDb,
     *,
     user_id: int = None,
     username: str = None,
+    collection_name: str = None,
     only_owned: bool = True,
     include_deleted: bool = False,
 ):
+    raise_if_all_none(user_id=user_id, username=username)
+
     tgt_user = get_user_query(
         user_id = user_id,
         username = username,
@@ -193,6 +179,9 @@ def get_user_collections_query(
             )
         )
 
+    if collection_name is not None:
+        query = query.where(collections.c.name == collection_name)
+
     if only_owned:
         query = query.where(collections.c.owner == tgt_user.c.id)
     else:
@@ -210,7 +199,7 @@ async def get_collection(
     *,
     user_id: int = None,
     username: str = None,
-    collection_name: str = None,
+    collection_name: str,
     only_owned: bool = True,
     include_deleted: bool = False,
 ) -> Collection:
@@ -219,11 +208,10 @@ async def get_collection(
         user,
         user_id = user_id,
         username = username,
+        collection_name = collection_name,
         only_owned = only_owned,
         include_deleted = include_deleted,
     )
-
-    query = query.where(collections.c.name == collection_name)
 
     return await database.one(query, Collection.wrapper(user))
 
@@ -251,3 +239,81 @@ async def get_collections(
         query = query.order_by(collections.c.title)
 
     return await database.all(query, Collection.wrapper(user))
+
+
+def update_collection_query(
+    database: Database,
+    user: UserDb,
+    *,
+    user_id: int = None,
+    username: str = None,
+    collection_name: str,
+):
+    col = (
+        get_user_collections_query(
+            user,
+            user_id = user_id,
+            username = username,
+            collection_name = collection_name,
+        )
+        .with_only_columns([collections.c.id, user_collections.c.can_edit])
+        .alias()
+    )
+
+    return (
+        collections.update()
+        .returning(collections.c.id)
+        .where(collections.c.id == col.c.id)
+        .where(col.c.can_edit)
+    )
+
+
+async def update_collection(
+    database: Database,
+    user: UserDb,
+    *,
+    value: CollectionIn,
+    user_id: int = None,
+    username: str = None,
+    collection_name: str,
+):
+    query = (
+        update_collection_query(
+            database,
+            user,
+            user_id = user_id,
+            username = username,
+            collection_name = collection_name,
+        )
+        .values(**value.dict(include={"name", "title", "public"}))
+    )
+
+    await database.one(query)
+
+
+async def delete_collection(
+    database: Database,
+    user: UserDb,
+    *,
+    user_id: int = None,
+    username: str = None,
+    collection_name: str,
+):
+    if not user.is_admin and (
+        (user_id is not None and user_id != user.id)
+        or (username is not None and username != user.username)
+    ):
+        raise ForbiddenError("Collections can only be deleted by their owners")
+
+    query = (
+        update_collection_query(
+            database,
+            user,
+            user_id = user_id,
+            username = username,
+            collection_name = collection_name,
+        )
+        .values(deleted=True)
+    )
+
+    await database.one(query)

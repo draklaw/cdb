@@ -20,3 +20,11 @@ def print_query(query):
     compiled = query.compile()
     print(compiled)
     print(compiled.params)
+
+
+def raise_if_all_none(**kwargs):
+    for value in kwargs.values():
+        if value is not None:
+            return
+    arg_list = ", ".join(kwargs.keys())
+    raise TypeError(f"One of the following argument must be set: {arg_list}")
