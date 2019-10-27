@@ -17,7 +17,11 @@
 
 import pytest
 
-from cdb_database.error import AlreadyExistsError, NotFoundError
+from cdb_database.error import (
+    AlreadyExistsError,
+    NotFoundError,
+    ForbiddenError,
+)
 from cdb_database.collection import (
     CollectionCreate,
     CollectionDb,
@@ -27,6 +31,7 @@ from cdb_database.collection import (
     get_collection,
     get_collections,
     update_collection,
+    delete_collection,
     link_user_to_collection,
 )
 from cdb_database.test_db import (
@@ -400,4 +405,58 @@ async def test_update_shared_collection_no_edit(database):
                 value = update,
                 username = admin_user.username,
                 collection_name = admin_shared_col.name,
+            )
+
+
+async def test_delete_owned_collection(database):
+    async with database.transaction(force_rollback=True):
+        await delete_collection(
+            database,
+            test_user,
+            username = test_user.username,
+            collection_name = test_test_col.name,
+        )
+
+        with pytest.raises(NotFoundError):
+            await get_collection(
+                database,
+                test_user,
+                username = test_user.username,
+                collection_name = test_test_col.name
+            )
+
+
+async def test_delete_shared_collection(database):
+    async with database.transaction(force_rollback=True):
+        await link_user_to_collection(
+            database,
+            test_user.id,
+            admin_private_col.id,
+            can_edit = True,
+        )
+
+        with pytest.raises(ForbiddenError):
+            await delete_collection(
+                database,
+                test_user,
+                username = admin_user.username,
+                collection_name = admin_private_col.name,
+            )
+
+
+async def test_double_delete_owned_collection(database):
+    async with database.transaction(force_rollback=True):
+        await delete_collection(
+            database,
+            test_user,
+            username = test_user.username,
+            collection_name = test_test_col.name,
+        )
+
+        with pytest.raises(NotFoundError):
+            await delete_collection(
+                database,
+                test_user,
+                username = test_user.username,
+                collection_name = test_test_col.name,
             )
