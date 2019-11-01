@@ -18,49 +18,30 @@
 from typing import List, Union
 from pydantic import BaseModel, SecretStr
 
-from sqlalchemy import (
-    select,
-)
+from sqlalchemy import select
 from databases import Database
 
-from .schema import Field, create_table
+from .tables import (
+    UserDb,
+    users,
+)
 
 
-class UserBase(BaseModel):
-    """Base class for users.
-    """
-
-    username: str = Field(..., unique=True)
-    email: str = Field(..., unique=True)
-    is_admin: bool = False
-
-    @classmethod
-    def from_row(cls, row):
-        return cls(**row)
-
-
-class UserCreate(UserBase):
+class UserCreate(BaseModel):
     """A user without id but with a hashed_password, useful for inserting user
     in the DB.
     """
 
+    username: str = ...
+    email: str = ...
     hashed_password: SecretStr = ...
-
-    def unwrapped_dict(self, **kwargs) -> dict:
-        d = self.dict(**kwargs)
-        d["hashed_password"] = d["hashed_password"].get_secret_value()
-        return d
-
-
-class UserDb(UserCreate):
-    """A user as stored in the DB.
-    """
-
-    id: int = Field(..., primary_key=True)
+    is_admin: bool = False
     disabled: bool = False
 
-
-users = create_table("users", UserDb)
+def unwrapped_user_dict(user, **kwargs) -> dict:
+    d = user.dict(**kwargs)
+    d["hashed_password"] = d["hashed_password"].get_secret_value()
+    return d
 
 
 async def create_user(
@@ -69,7 +50,7 @@ async def create_user(
 ) -> UserDb:
     """Creates a user, returns it."""
 
-    params = user.unwrapped_dict(exclude={"id"})
+    params = unwrapped_user_dict(user, exclude={"id"})
     params.setdefault("disabled", False)
     id = await database.execute(users.insert(), params)
 

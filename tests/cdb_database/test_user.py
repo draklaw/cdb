@@ -20,6 +20,7 @@ from cdb_database.user import (
     UserDb,
     get_user,
     get_users,
+    unwrapped_user_dict,
 )
 from cdb_database.error import NotFoundError
 from cdb_database.test_db import (
@@ -32,17 +33,17 @@ pytestmark = pytest.mark.asyncio
 
 async def test_get_user_by_id(database):
     user = await get_user(database, user_id=admin_user.id)
-    assert user.unwrapped_dict() == admin_user.unwrapped_dict()
+    assert unwrapped_user_dict(user) == unwrapped_user_dict(admin_user)
 
 
 async def test_get_user_by_username(database):
     user = await get_user(database, username=test_user.username)
-    assert user.unwrapped_dict() == test_user.unwrapped_dict()
+    assert unwrapped_user_dict(user) == unwrapped_user_dict(test_user)
 
 
 async def test_get_user_by_email(database):
     user = await get_user(database, email=test_user.email)
-    assert user.unwrapped_dict() == test_user.unwrapped_dict()
+    assert unwrapped_user_dict(user) == unwrapped_user_dict(test_user)
 
 
 async def test_get_disabled_user_fail(database):
@@ -56,14 +57,14 @@ async def test_get_disabled_user_explicitly(database):
         user_id = disabled_user.id,
         include_disabled = True,
     )
-    assert user.unwrapped_dict() == disabled_user.unwrapped_dict()
+    assert unwrapped_user_dict(user) == unwrapped_user_dict(disabled_user)
 
 
 async def test_get_all_active_users(database):
     users = await get_users(database)
 
-    unwrapped_users = list(map(UserDb.unwrapped_dict, users))
-    expected = list(map(UserDb.unwrapped_dict, [
+    unwrapped_users = list(map(unwrapped_user_dict, users))
+    expected = list(map(unwrapped_user_dict, [
         admin_user,
         test_user,
     ]))
@@ -74,8 +75,8 @@ async def test_get_all_active_users(database):
 async def test_get_all_users(database):
     users = await get_users(database, include_disabled=True)
 
-    unwrapped_users = list(map(UserDb.unwrapped_dict, users))
-    expected = list(map(UserDb.unwrapped_dict, [
+    unwrapped_users = list(map(unwrapped_user_dict, users))
+    expected = list(map(unwrapped_user_dict, [
         admin_user,
         disabled_user,
         test_user,

@@ -24,40 +24,19 @@ from sqlalchemy import (
 )
 from databases import Database
 
-from .schema import Field, create_table
-from .error import convert_error, ForbiddenError
-from .user import users, UserDb, get_user_query
-from .utils import raise_if_all_none
-from .user import get_user
-from .collection import get_collection
+from .tables import (
+    ItemDb,
+    items,
+)
+from .error import convert_error
 
 
 class ItemCreate(BaseModel):
     """An item without id, suitable for creation."""
 
-    name: str = Field(..., index=True)
+    name: str = ...
     title: str = ...
     # properties: dict = Field(...)
-
-    @classmethod
-    def from_row(cls, row):
-        return cls(**row)
-
-
-class ItemDb(ItemCreate):
-    """An item as stored in the db."""
-
-    id: int = Field(..., primary_key=True)
-    collection: int = Field(..., ForeignKey("collections.id"), index=True)
-    deleted: bool = False
-
-    class Config:
-        sql_alchemy = [
-            UniqueConstraint("collection", "name"),
-        ]
-
-
-items = create_table("items", ItemDb)
 
 
 @convert_error

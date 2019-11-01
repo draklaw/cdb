@@ -20,60 +20,45 @@ from pydantic import BaseModel
 
 from sqlalchemy import (
     select, and_, or_,
-    ForeignKey, PrimaryKeyConstraint, UniqueConstraint,
 )
 from databases import Database
 
-from .schema import Field, create_table
+from .tables import (
+    UserDb, CollectionDb,
+    users, collections, user_collections,
+)
 from .error import convert_error, ForbiddenError
-from .user import users, UserDb, get_user_query
+from .user import get_user_query
 from .utils import raise_if_all_none
 
 
 class CollectionIn(BaseModel):
     """A collection without id, suitable for creation."""
 
-    name: str = Field(..., index=True)
+    name: str = ...
     title: str = ...
     public: bool = False
 
 
-class CollectionCreate(CollectionIn):
+class CollectionCreate(BaseModel):
     """A collection without id, suitable for creation."""
 
-    owner: int = Field(..., ForeignKey("users.id"), index=True)
+    owner: int = ...
+    name: str = ...
+    title: str = ...
+    public: bool = False
 
 
-class CollectionDb(CollectionCreate):
-    """A collection as stored in the DB.
-    """
-
-    id: int = Field(..., primary_key=True)
-    deleted: bool = False
-
-    class Config:
-        sql_alchemy = [
-            UniqueConstraint("owner", "name"),
-        ]
-
-
-class UserCollection(BaseModel):
-    """The link between a user and a collection."""
-
-    user_id: int = Field(..., ForeignKey("users.id"), index=True)
-    collection_id: int = Field(..., ForeignKey("collections.id"), index=True)
-    can_edit: bool = True
-
-    class Config:
-        sql_alchemy = [
-            PrimaryKeyConstraint("user_id", "collection_id"),
-        ]
-
-
-class Collection(CollectionDb):
+class Collection(BaseModel):
     """A collection along with info related to a user (rw rights, etc.)"""
 
     id: int = ...
+    owner: int = ...
+    name: str = ...
+    title: str = ...
+    public: bool = False
+    deleted: bool = False
+
     user_id: int = ...
     can_edit: bool = True
 
@@ -93,11 +78,9 @@ class Collection(CollectionDb):
 
 
 class CollectionUpdate(CollectionIn):
-    id: int
-
-
-collections = create_table("collections", CollectionDb)
-user_collections = create_table("user_collections", UserCollection)
+    name: str = ...
+    title: str = ...
+    public: bool = False
 
 
 @convert_error
