@@ -24,12 +24,14 @@ from .collection import (
     create_collection,
     link_user_to_collection,
 )
+from .item import create_item, ItemDb
 
 
 class Builder:
     def __init__(self):
         self.users = []
         self.collections = []
+        self.items = []
 
     def add_user(self, **kwargs):
         user = UserDb(
@@ -47,12 +49,23 @@ class Builder:
         self.collections.append(collection)
         return collection
 
+    def add_item(self, **kwargs):
+        item = ItemDb(
+            id = len(self.items) + 1,
+            **kwargs,
+        )
+        self.items.append(item)
+        return item
+
     async def fill_database(self, database: Database):
         for user in self.users:
             await create_user(database, user)
 
         for collection in self.collections:
             await create_collection(database, collection)
+
+        for item in self.items:
+            await create_item(database, item)
 
 
 builder = Builder()
@@ -129,6 +142,16 @@ disabled_public_col = builder.add_collection(
     title = "Public collection",
     public = True,
 )
+
+
+test_test_items = [
+    builder.add_item(
+        name = f"item_{i:02d}",
+        title = f"Item #{i}",
+        collection = test_test_col.id,
+    )
+    for i in range(1, 11)
+]
 
 
 async def fill_test_db(database: Database):

@@ -78,18 +78,18 @@ class Collection(CollectionDb):
     can_edit: bool = True
 
     @classmethod
-    def from_row(cls, user, row):
+    def from_row(cls, logged_user, row):
         col_dict = dict(**row)
 
         if col_dict["user_id"] is None:
-            col_dict["user_id"] = user.id
-            col_dict["can_edit"] = user.is_admin
+            col_dict["user_id"] = logged_user.id
+            col_dict["can_edit"] = logged_user.is_admin
 
         return Collection(**col_dict)
 
     @classmethod
-    def wrapper(cls, user):
-        return lambda row: cls.from_row(user, row)
+    def wrapper(cls, logged_user):
+        return lambda row: cls.from_row(logged_user, row)
 
 
 class CollectionUpdate(CollectionIn):
@@ -141,7 +141,7 @@ async def link_user_to_collection(
 
 
 def get_user_collections_query(
-    user: UserDb,
+    logged_user: UserDb,
     *,
     user_id: int = None,
     username: str = None,
@@ -154,7 +154,7 @@ def get_user_collections_query(
     tgt_user = get_user_query(
         user_id = user_id,
         username = username,
-        include_disabled = user.is_admin,
+        include_disabled = logged_user.is_admin,
     ).with_only_columns([users.c.id]).alias()
 
     query = (
@@ -164,16 +164,16 @@ def get_user_collections_query(
                 user_collections,
                 and_(
                     collections.c.id == user_collections.c.collection_id,
-                    user_collections.c.user_id == user.id,
+                    user_collections.c.user_id == logged_user.id,
                 )
             )
         )
     )
 
-    if not user.is_admin:
+    if not logged_user.is_admin:
         query = query.where(
             or_(
-                tgt_user.c.id == user.id,
+                tgt_user.c.id == logged_user.id,
                 collections.c.public,
                 user_collections.c.user_id != None,
             )
@@ -195,7 +195,7 @@ def get_user_collections_query(
 
 async def get_collection(
     database: Database,
-    user: UserDb,
+    logged_user: UserDb,
     *,
     user_id: int = None,
     username: str = None,
@@ -205,7 +205,7 @@ async def get_collection(
 ) -> Collection:
 
     query = get_user_collections_query(
-        user,
+        logged_user,
         user_id = user_id,
         username = username,
         collection_name = collection_name,
@@ -213,12 +213,12 @@ async def get_collection(
         include_deleted = include_deleted,
     )
 
-    return await database.one(query, Collection.wrapper(user))
+    return await database.one(query, Collection.wrapper(logged_user))
 
 
 async def get_collections(
     database: Database,
-    user: UserDb,
+    logged_user: UserDb,
     *,
     user_id: int = None,
     username: str = None,
@@ -228,7 +228,7 @@ async def get_collections(
 ) -> List[Collection]:
 
     query = get_user_collections_query(
-        user,
+        logged_user,
         user_id = user_id,
         username = username,
         only_owned = only_owned,
@@ -238,12 +238,12 @@ async def get_collections(
     if order_by_title:
         query = query.order_by(collections.c.title)
 
-    return await database.all(query, Collection.wrapper(user))
+    return await database.all(query, Collection.wrapper(logged_user))
 
 
 def update_collection_query(
     database: Database,
-    user: UserDb,
+    logged_user: UserDb,
     *,
     user_id: int = None,
     username: str = None,
@@ -251,7 +251,7 @@ def update_collection_query(
 ):
     col = (
         get_user_collections_query(
-            user,
+            logged_user,
             user_id = user_id,
             username = username,
             collection_name = collection_name,
@@ -270,7 +270,7 @@ def update_collection_query(
 
 async def update_collection(
     database: Database,
-    user: UserDb,
+    logged_user: UserDb,
     *,
     value: CollectionIn,
     user_id: int = None,
@@ -280,7 +280,7 @@ async def update_collection(
     query = (
         update_collection_query(
             database,
-            user,
+            logged_user,
             user_id = user_id,
             username = username,
             collection_name = collection_name,
@@ -293,22 +293,22 @@ async def update_collection(
 
 async def delete_collection(
     database: Database,
-    user: UserDb,
+    logged_user: UserDb,
     *,
     user_id: int = None,
     username: str = None,
     collection_name: str,
 ):
-    if not user.is_admin and (
-        (user_id is not None and user_id != user.id)
-        or (username is not None and username != user.username)
+    if not logged_user.is_admin and (
+        (user_id is not None and user_id != logged_user.id)
+        or (username is not None and username != logged_user.username)
     ):
         raise ForbiddenError("Collections can only be deleted by their owners")
 
     query = (
         update_collection_query(
             database,
-            user,
+            logged_user,
             user_id = user_id,
             username = username,
             collection_name = collection_name,

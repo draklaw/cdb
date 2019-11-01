@@ -21,6 +21,7 @@ from . import (
     schema,
     user,
     collection,
+    item,
 )
 from .error import NotFoundError
 
