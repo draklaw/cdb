@@ -109,6 +109,12 @@ admin_shared_col = builder.add_collection(
     title = "Private but shared with test",
 )
 
+admin_shared_edit_col = builder.add_collection(
+    owner = admin_user.id,
+    name = "shared-edit",
+    title = "Private but shared with test, with edit rights",
+)
+
 admin_public_col = builder.add_collection(
     owner = admin_user.id,
     name = "public",
@@ -161,5 +167,12 @@ async def fill_test_db(database: Database):
         database,
         test_user.id,
         admin_shared_col.id,
-        can_edit = False
+        can_edit = False,
+    )
+
+    await link_user_to_collection(
+        database,
+        test_user.id,
+        admin_shared_edit_col.id,
+        can_edit = True,
     )

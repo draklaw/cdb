@@ -38,6 +38,7 @@ class UserCreate(BaseModel):
     is_admin: bool = False
     disabled: bool = False
 
+
 def unwrapped_user_dict(user, **kwargs) -> dict:
     d = user.dict(**kwargs)
     d["hashed_password"] = d["hashed_password"].get_secret_value()

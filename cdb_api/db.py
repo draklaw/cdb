@@ -20,13 +20,45 @@ from fastapi import Depends
 from cdb_database import Database
 
 from . import settings
+from .utils import logger
 
 
-database = Database(settings.database_url)
+database_url = None
+database = None
+
+
+async def setup_database():
+    global database, database_url
+
+    assert database is None
+
+    database_url = (
+        settings.database_url
+        if not settings.test
+        else settings.test_database_url
+    )
+
+    logger.info(f"Connect to database {database_url!r}...")
+    database = Database(database_url)
+
+    await database.connect()
+
+
+async def teardown_database():
+    global database
+
+    assert database is not None
+
+    await database.disconnect()
+
+    database = None
 
 
 async def get_db_transaction():
-    async with database.transaction():
+    if not settings.test:
+        async with database.transaction():
+            yield database
+    else:
         yield database
 
 

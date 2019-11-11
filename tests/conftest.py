@@ -28,17 +28,18 @@ from cdb_database.test_db import fill_test_db
 load_dotenv()
 
 
-@pytest.yield_fixture(scope="session")
-def event_loop(request):
-    """Create an instance of the default event loop for each test case."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
+async def fill_database():
+    db_url = os.getenv("CDB_TEST_DATABASE")
+
+    engine = create_engine(db_url)
+    drop_tables(engine)
+    create_tables(engine)
+
+    async with Database(db_url) as database:
+        await fill_test_db(database)
 
 
 @pytest.fixture(scope="session")
-async def database(setup_database):
-    db_url = os.getenv("CDB_TEST_DATABASE")
-
-    async with Database(db_url) as database:
-        yield database
+def setup_database():
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(fill_database())

@@ -45,7 +45,9 @@ class Token(BaseModel):
     token_type: str
 
 
-class UserInput(user_db.UserBase):
+class UserInput(BaseModel):
+    username: str
+    email: str
     password: SecretStr
 
 
@@ -158,9 +160,7 @@ current_admin = Depends(get_current_admin)
 
 
 def strip_user_info(user):
-    return UserPublic(
-        **user.dict(include={"id", "username"})
-    )
+    return user.dict(include={"id", "username"})
 
 
 @router.post(
@@ -214,15 +214,15 @@ async def login(
     summary = "Get the list of all users",
 )
 async def get_users(
-    user: user_db.UserDb = current_user,
+    logged_user: user_db.UserDb = current_user,
     db: Database = transaction,
 ):
     users = await user_db.get_users(
         db,
-        include_disabled = user.is_admin,
+        include_disabled = logged_user.is_admin,
     )
 
-    if not user.is_admin:
+    if not logged_user.is_admin:
         users = list(map(strip_user_info, users))
 
     return users
@@ -237,18 +237,18 @@ async def get_users(
 )
 async def get_user(
     username: str,
-    user: user_db.UserDb = current_user,
+    logged_user: user_db.UserDb = current_user,
     db: Database = transaction,
 ):
     target_user = await user_db.get_user(
         db,
         username = username,
-        include_disabled = user.is_admin,
+        include_disabled = logged_user.is_admin,
     )
 
-    if target_user.id == user.id:
+    if target_user.id == logged_user.id:
         del target_user.disabled
-    elif not user.is_admin:
+    elif not logged_user.is_admin:
         target_user = strip_user_info(target_user)
 
     return target_user

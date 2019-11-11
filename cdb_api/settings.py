@@ -22,6 +22,12 @@ from starlette.config import Config
 
 config = Config(".env")
 
+test = config(
+    "CDB_TEST",
+    cast = bool,
+    default = False,
+)
+
 debug = config(
     "CDB_DEBUG",
     cast = bool,
@@ -36,6 +42,11 @@ api_prefix = config(
 
 database_url = config(
     "CDB_DATABASE",
+    cast = databases.DatabaseURL,
+)
+
+test_database_url = config(
+    "CDB_TEST_DATABASE",
     cast = databases.DatabaseURL,
 )
 

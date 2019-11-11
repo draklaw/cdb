@@ -15,30 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
-import asyncio
-import pytest
-from sqlalchemy import create_engine
-from dotenv import load_dotenv
-
-from cdb_database import Database, create_tables, drop_tables
-from cdb_database.test_db import fill_test_db
+import logging
 
 
-load_dotenv()
-
-
-@pytest.yield_fixture(scope="session")
-def event_loop(request):
-    """Create an instance of the default event loop for each test case."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
-
-
-@pytest.fixture(scope="session")
-async def database(setup_database):
-    db_url = os.getenv("CDB_TEST_DATABASE")
-
-    async with Database(db_url) as database:
-        yield database
+logger = logging.getLogger("cdb")

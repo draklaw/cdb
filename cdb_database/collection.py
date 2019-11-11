@@ -59,7 +59,6 @@ class Collection(BaseModel):
     public: bool = False
     deleted: bool = False
 
-    user_id: int = ...
     can_edit: bool = True
 
     @classmethod
@@ -78,9 +77,9 @@ class Collection(BaseModel):
 
 
 class CollectionUpdate(CollectionIn):
-    name: str = ...
-    title: str = ...
-    public: bool = False
+    name: str
+    title: str
+    public: bool
 
 
 @convert_error
@@ -125,21 +124,13 @@ async def link_user_to_collection(
 
 def get_user_collections_query(
     logged_user: UserDb,
+    user_id: int,
     *,
-    user_id: int = None,
-    username: str = None,
     collection_name: str = None,
     only_owned: bool = True,
+    include_private: bool = False,
     include_deleted: bool = False,
 ):
-    raise_if_all_none(user_id=user_id, username=username)
-
-    tgt_user = get_user_query(
-        user_id = user_id,
-        username = username,
-        include_disabled = logged_user.is_admin,
-    ).with_only_columns([users.c.id]).alias()
-
     query = (
         select([collections, user_collections])
         .select_from(
@@ -153,10 +144,9 @@ def get_user_collections_query(
         )
     )
 
-    if not logged_user.is_admin:
+    if not include_private:
         query = query.where(
             or_(
-                tgt_user.c.id == logged_user.id,
                 collections.c.public,
                 user_collections.c.user_id != None,
             )
@@ -166,9 +156,9 @@ def get_user_collections_query(
         query = query.where(collections.c.name == collection_name)
 
     if only_owned:
-        query = query.where(collections.c.owner == tgt_user.c.id)
+        query = query.where(collections.c.owner == user_id)
     else:
-        query = query.where(user_collections.c.user_id == tgt_user.c.id)
+        query = query.where(user_collections.c.user_id == user_id)
 
     if not include_deleted:
         query = query.where(~collections.c.deleted)
@@ -179,20 +169,20 @@ def get_user_collections_query(
 async def get_collection(
     database: Database,
     logged_user: UserDb,
-    *,
-    user_id: int = None,
-    username: str = None,
+    user_id: int,
     collection_name: str,
+    *,
     only_owned: bool = True,
+    include_private: bool = False,
     include_deleted: bool = False,
 ) -> Collection:
 
     query = get_user_collections_query(
-        logged_user,
+        logged_user = logged_user,
         user_id = user_id,
-        username = username,
         collection_name = collection_name,
         only_owned = only_owned,
+        include_private = include_private,
         include_deleted = include_deleted,
     )
 
@@ -202,10 +192,10 @@ async def get_collection(
 async def get_collections(
     database: Database,
     logged_user: UserDb,
+    user_id: int,
     *,
-    user_id: int = None,
-    username: str = None,
     only_owned: bool = True,
+    include_private: bool = False,
     include_deleted: bool = False,
     order_by_title: bool = True,
 ) -> List[Collection]:
@@ -213,8 +203,8 @@ async def get_collections(
     query = get_user_collections_query(
         logged_user,
         user_id = user_id,
-        username = username,
         only_owned = only_owned,
+        include_private = include_private,
         include_deleted = include_deleted,
     )
 
@@ -226,77 +216,41 @@ async def get_collections(
 
 def update_collection_query(
     database: Database,
-    logged_user: UserDb,
-    *,
-    user_id: int = None,
-    username: str = None,
-    collection_name: str,
+    collection_id: int,
 ):
-    col = (
-        get_user_collections_query(
-            logged_user,
-            user_id = user_id,
-            username = username,
-            collection_name = collection_name,
-        )
-        .with_only_columns([collections.c.id, user_collections.c.can_edit])
-        .alias()
-    )
-
     return (
         collections.update()
-        .returning(collections.c.id)
-        .where(collections.c.id == col.c.id)
-        .where(col.c.can_edit)
+        .returning(collections)
+        .where(collections.c.id == collection_id)
     )
 
 
 async def update_collection(
     database: Database,
-    logged_user: UserDb,
-    *,
+    collection_id: int,
     value: CollectionIn,
-    user_id: int = None,
-    username: str = None,
-    collection_name: str,
-):
+) -> Collection:
     query = (
         update_collection_query(
             database,
-            logged_user,
-            user_id = user_id,
-            username = username,
-            collection_name = collection_name,
+            collection_id = collection_id,
         )
         .values(**value.dict(include={"name", "title", "public"}))
     )
 
-    await database.one(query)
+    return await database.one(query)
 
 
 async def delete_collection(
     database: Database,
-    logged_user: UserDb,
-    *,
-    user_id: int = None,
-    username: str = None,
-    collection_name: str,
+    collection_id: int,
 ):
-    if not logged_user.is_admin and (
-        (user_id is not None and user_id != logged_user.id)
-        or (username is not None and username != logged_user.username)
-    ):
-        raise ForbiddenError("Collections can only be deleted by their owners")
-
     query = (
         update_collection_query(
             database,
-            logged_user,
-            user_id = user_id,
-            username = username,
-            collection_name = collection_name,
+            collection_id = collection_id,
         )
-        .values(deleted=True)
+        .values(deleted = True)
     )
 
     await database.one(query)
