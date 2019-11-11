@@ -20,7 +20,7 @@ from starlette.responses import JSONResponse
 from starlette.status import HTTP_404_NOT_FOUND, HTTP_403_FORBIDDEN
 from fastapi import FastAPI
 
-from . import settings, db, user, collection
+from . import settings, db, user, collection, item
 
 from cdb_database.error import NotFoundError, AlreadyExistsError
 
@@ -35,6 +35,7 @@ app = FastAPI(
 
 app.include_router(user.router)
 app.include_router(collection.router)
+app.include_router(item.router)
 
 # test_transaction = None
 

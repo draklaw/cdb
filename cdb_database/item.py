@@ -31,12 +31,29 @@ from .tables import (
 from .error import convert_error
 
 
-class ItemCreate(BaseModel):
+class ItemIn(BaseModel):
     """An item without id, suitable for creation."""
 
     name: str = ...
     title: str = ...
     # properties: dict = Field(...)
+
+
+class ItemCreate(BaseModel):
+    """An item without id, suitable for creation."""
+
+    collection: int = ...
+    name: str = ...
+    title: str = ...
+    # properties: dict = Field(...)
+
+
+class ItemUpdate(BaseModel):
+    """An item without id, suitable for creation."""
+
+    name: str
+    title: str
+    # properties: dict
 
 
 @convert_error
@@ -88,3 +105,50 @@ async def get_items(
     query = get_item_query(collection_id, include_deleted=include_deleted)
 
     return await database.all(query, ItemDb.from_row)
+
+
+async def get_item(
+    database: Database,
+    collection_id: int,
+    item_name: str,
+    *,
+    include_deleted: bool = False,
+) -> List[ItemDb]:
+
+    query = (
+        get_item_query(collection_id, include_deleted=include_deleted)
+        .where(items.c.name == item_name)
+    )
+
+    return await database.one(query, ItemDb.from_row)
+
+
+async def update_item(
+    database: Database,
+    item_id: int,
+    value: ItemUpdate,
+) -> ItemDb:
+
+    query = (
+        items.update()
+        .returning(items)
+        .where(items.c.id == item_id)
+        .values(**value.dict(include={"name", "title"}))
+    )
+
+    return await database.one(query, ItemDb.from_row)
+
+
+async def delete_item(
+    database: Database,
+    item_id: int,
+) -> ItemDb:
+
+    query = (
+        items.update()
+        .returning(items)
+        .where(items.c.id == item_id)
+        .values(deleted = True)
+    )
+
+    await database.one(query)

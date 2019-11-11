@@ -150,14 +150,25 @@ disabled_public_col = builder.add_collection(
 )
 
 
-test_test_items = [
-    builder.add_item(
-        name = f"item_{i:02d}",
-        title = f"Item #{i}",
-        collection = test_test_col.id,
-    )
-    for i in range(1, 11)
-]
+def build_items(collection, count=10):
+    return [
+        builder.add_item(
+            name = f"item_{i:02d}",
+            title = f"Item #{i}",
+            collection = collection.id,
+        )
+        for i in range(1, count + 1)
+    ]
+
+
+admin_private_items = build_items(admin_private_col)
+admin_shared_items = build_items(admin_shared_col)
+admin_shared_edit_items = build_items(admin_shared_edit_col)
+admin_public_items = build_items(admin_public_col)
+test_test_items = build_items(test_test_col)
+test_public_items = build_items(test_public_col)
+test_deleted_items = build_items(test_deleted_col)
+disabled_public_items = build_items(disabled_public_col)
 
 
 async def fill_test_db(database: Database):

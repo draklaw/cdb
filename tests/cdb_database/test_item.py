@@ -36,7 +36,13 @@ from cdb_database.collection import (
 )
 from cdb_database.item import (
     ItemDb,
+    ItemCreate,
+    ItemUpdate,
     get_items,
+    get_item,
+    create_item,
+    update_item,
+    delete_item,
 )
 from cdb_database.test_db import (
     builder,
@@ -64,3 +70,97 @@ async def test_get_items(database):
     )
 
     assert items == sorted(test_test_items, key=lambda i: i.title)
+
+
+async def test_get_item(database):
+    item = await get_item(
+        database,
+        test_test_col.id,
+        test_test_items[3].name,
+    )
+
+    assert item == test_test_items[3]
+
+
+async def test_create_item(database):
+    async with database.transaction(force_rollback=True):
+        item = ItemCreate(
+            collection = test_test_col.id,
+            name = "foo",
+            title = "Bar",
+        )
+        result = await create_item(database, item)
+
+        expected = ItemDb(
+            id = result.id,
+            deleted = False,
+            **item.dict(),
+        )
+
+        assert result == expected
+
+        result = await get_item(
+            database,
+            test_test_col.id,
+            item.name,
+        )
+
+        assert result == expected
+
+
+async def test_create_duplicate_item(database):
+    async with database.transaction(force_rollback=True):
+        item = ItemCreate(
+            collection = test_test_col.id,
+            name = test_test_items[7].name,
+            title = "Bar",
+        )
+
+        with pytest.raises(AlreadyExistsError):
+            await create_item(database, item)
+
+
+async def test_update_item(database):
+    async with database.transaction(force_rollback=True):
+        item = ItemUpdate(
+            name = "foo",
+            title = "FooBar",
+        )
+        result = await update_item(
+            database,
+            test_test_items[4].id,
+            item,
+        )
+
+        expected = ItemDb(
+            id = test_test_items[4].id,
+            collection = test_test_col.id,
+            name = item.name,
+            title = item.title,
+            deleted = False,
+        )
+
+        assert result == expected
+
+        result = await get_item(
+            database,
+            test_test_col.id,
+            item.name,
+        )
+
+        assert result == expected
+
+
+async def test_delete_item(database):
+    async with database.transaction(force_rollback=True):
+        await delete_item(
+            database,
+            test_test_items[6].id,
+        )
+
+        with pytest.raises(NotFoundError):
+            result = await get_item(
+                database,
+                test_test_col.id,
+                test_test_items[6].name,
+            )

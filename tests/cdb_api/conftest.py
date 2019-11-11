@@ -53,6 +53,22 @@ def client_no_rollback(setup_database):
         yield client
 
 
+@pytest.fixture(scope="session")
+def user_headers_no_rollback(client_no_rollback):
+    token = get_connection_token(client_no_rollback, "test", "123")
+    return dict(
+        Authorization = f"Bearer {token}",
+    )
+
+
+@pytest.fixture(scope="session")
+def admin_headers_no_rollback(client_no_rollback):
+    token = get_connection_token(client_no_rollback, "admin", "password")
+    return dict(
+        Authorization = f"Bearer {token}",
+    )
+
+
 @pytest.fixture()
 def client(client_no_rollback):
     trx = cdb_api.db.database.transaction()
@@ -64,16 +80,10 @@ def client(client_no_rollback):
 
 
 @pytest.fixture()
-def user_headers(client):
-    token = get_connection_token(client, "test", "123")
-    return dict(
-        Authorization = f"Bearer {token}",
-    )
+def user_headers(client, user_headers_no_rollback):
+    return user_headers_no_rollback
 
 
 @pytest.fixture()
-def admin_headers(client):
-    token = get_connection_token(client, "admin", "password")
-    return dict(
-        Authorization = f"Bearer {token}",
-    )
+def admin_headers(client, admin_headers_no_rollback):
+    return admin_headers_no_rollback

@@ -79,6 +79,14 @@ def test_unauthentified_update_collection_fail(client):
     assert "detail" in response.json()
 
 
+def test_unauthentified_delete_collection_fail(client):
+    response = client.delete(
+        "/users/test/collections/test",
+    )
+    assert response.status_code == 401
+    assert "detail" in response.json()
+
+
 # User tests ------------------------------------------------------------------
 
 
