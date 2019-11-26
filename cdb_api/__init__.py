@@ -18,6 +18,7 @@
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.status import HTTP_404_NOT_FOUND, HTTP_403_FORBIDDEN
+from starlette.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 
 from . import settings, db, user, collection, item
@@ -37,6 +38,13 @@ app.include_router(user.router)
 app.include_router(collection.router)
 app.include_router(item.router)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins = ["http://localhost:8080"],
+    allow_credentials = True,
+    allow_methods = ["*"],
+    allow_headers = ["*"],
+)
 # test_transaction = None
 
 
