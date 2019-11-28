@@ -156,6 +156,7 @@ def build_items(collection, count=10):
             name = f"item_{i:02d}",
             title = f"Item #{i}",
             collection = collection.id,
+            properties = dict(index=i)
         )
         for i in range(1, count + 1)
     ]

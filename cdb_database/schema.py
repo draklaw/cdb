@@ -27,7 +27,7 @@ except ImportError:
 
 from sqlalchemy import (
     MetaData, Table, Column,
-    Boolean, Integer, Float, Unicode, UnicodeText,
+    Boolean, Integer, Float, Unicode, UnicodeText, JSON
 )
 
 
@@ -42,6 +42,7 @@ _type_map = [
     (str, lambda f: UnicodeText),
     (float, lambda f: Float),
     (int, lambda f: Integer),
+    (dict, lambda f: JSON),
 ]
 
 

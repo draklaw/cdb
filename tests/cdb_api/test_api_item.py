@@ -225,6 +225,7 @@ def test_create_item_in_owned_collection(client, user_headers):
     item_dict = dict(
         name = "new-item",
         title = "New item",
+        properties = dict(stuff="foobar"),
     )
 
     response = client.post(
@@ -256,6 +257,7 @@ def test_create_item_in_other_public_collection(client, user_headers):
     item_dict = dict(
         name = "new-item",
         title = "New item",
+        properties = dict(stuff="foobar"),
     )
 
     response = client.post(
@@ -272,6 +274,7 @@ def test_create_item_in_other_private_collection(client, user_headers):
     item_dict = dict(
         name = "new-item",
         title = "New item",
+        properties = dict(stuff="foobar"),
     )
 
     response = client.post(
@@ -288,6 +291,7 @@ def test_create_item_in_other_shared_collection(client, user_headers):
     item_dict = dict(
         name = "new-item",
         title = "New item",
+        properties = dict(stuff="foobar"),
     )
 
     response = client.post(
@@ -304,6 +308,7 @@ def test_create_item_in_other_shared_edit_collection(client, user_headers):
     item_dict = dict(
         name = "new-item",
         title = "New item",
+        properties = dict(stuff="foobar"),
     )
 
     response = client.post(
@@ -335,6 +340,7 @@ def test_update_item_in_owned_private_collection(client, user_headers):
     item_dict = dict(
         name = "new-item",
         title = "New item",
+        properties = dict(stuff="foobar"),
     )
 
     response = client.put(
@@ -366,6 +372,7 @@ def test_update_item_in_owned_public_collection(client, user_headers):
     item_dict = dict(
         name = "new-item",
         title = "New item",
+        properties = dict(stuff="foobar"),
     )
 
     response = client.put(
@@ -397,6 +404,7 @@ def test_update_item_in_other_private_collection(client, user_headers):
     item_dict = dict(
         name = "new-item",
         title = "New item",
+        properties = dict(stuff="foobar"),
     )
 
     response = client.put(
@@ -413,6 +421,7 @@ def test_update_item_in_other_public_collection(client, user_headers):
     item_dict = dict(
         name = "new-item",
         title = "New item",
+        properties = dict(stuff="foobar"),
     )
 
     response = client.put(
@@ -429,6 +438,7 @@ def test_update_item_in_other_shared_collection(client, user_headers):
     item_dict = dict(
         name = "new-item",
         title = "New item",
+        properties = dict(stuff="foobar"),
     )
 
     response = client.put(
@@ -445,6 +455,7 @@ def test_update_item_in_other_shared_edit_collection(client, user_headers):
     item_dict = dict(
         name = "new-item",
         title = "New item",
+        properties = dict(stuff="foobar"),
     )
 
     response = client.put(

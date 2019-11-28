@@ -78,7 +78,7 @@ class ItemDb(BaseModel):
     collection: int = Field(..., ForeignKey("collections.id"), index=True)
     name: str = Field(..., index=True)
     title: str = ...
-    # properties: dict = Field(...)
+    properties: dict = Field(...)
     deleted: bool = False
 
     class Config:
@@ -91,7 +91,17 @@ class ItemDb(BaseModel):
         return cls(**row)
 
 
+class FieldDb(BaseModel):
+    id: int = Field(..., primary_key=True)
+    collection: int = Field(..., ForeignKey("collections.id"), index=True)
+    field: str = ...
+    label: str = ...
+    type: str = ...
+    sort_index: int = ...
+
+
 users = create_table("users", UserDb)
 collections = create_table("collections", CollectionDb)
 user_collections = create_table("user_collections", UserCollection)
 items = create_table("items", ItemDb)
+fields = create_table("fields", FieldDb)

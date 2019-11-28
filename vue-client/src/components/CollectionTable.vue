@@ -10,7 +10,7 @@
 		<tbody>
 			<tr v-for="item in collection.items" v-bind:key="item.id">
 				<td v-for="header in headers" v-bind:key="header.id">
-					{{ item[header.field] }}
+					{{ getField(item, header.field) }}
 				</td>
 			</tr>
 		</tbody>
@@ -19,10 +19,19 @@
 
 
 <script>
-	export default{
-		data(){
-			return{}
-		},
-		props:["collection", "headers"],
-	}
+export default{
+	data() {
+		return {
+		}
+	},
+	props: ["collection", "headers"],
+	methods: {
+		getField(item, field) {
+			const path = field.split(".")
+			for(const attr of path)
+				item = item[attr]
+			return item
+		}
+	},
+}
 </script>

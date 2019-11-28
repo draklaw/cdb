@@ -88,6 +88,7 @@ async def test_create_item(database):
             collection = test_test_col.id,
             name = "foo",
             title = "Bar",
+            properties = dict(stuff="foobar"),
         )
         result = await create_item(database, item)
 
@@ -114,6 +115,7 @@ async def test_create_duplicate_item(database):
             collection = test_test_col.id,
             name = test_test_items[7].name,
             title = "Bar",
+            properties = dict(stuff="foobar"),
         )
 
         with pytest.raises(AlreadyExistsError):
@@ -125,6 +127,7 @@ async def test_update_item(database):
         item = ItemUpdate(
             name = "foo",
             title = "FooBar",
+            properties = dict(stuff="foobar"),
         )
         result = await update_item(
             database,
@@ -137,6 +140,7 @@ async def test_update_item(database):
             collection = test_test_col.id,
             name = item.name,
             title = item.title,
+            properties = dict(stuff="foobar"),
             deleted = False,
         )
 

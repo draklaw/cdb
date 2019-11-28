@@ -30,7 +30,7 @@ export default {
 			loaded: false,
 			headers:[
 				{ id:1, label:"Nom", field:"title" },
-				{ id:2, label:"Nombre", field:"count" },
+				{ id:2, label:"Index", field:"properties.index" },
 			],
 		}
 	},

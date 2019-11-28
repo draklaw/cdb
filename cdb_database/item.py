@@ -36,7 +36,7 @@ class ItemIn(BaseModel):
 
     name: str = ...
     title: str = ...
-    # properties: dict = Field(...)
+    properties: dict = ...
 
 
 class ItemCreate(BaseModel):
@@ -45,7 +45,7 @@ class ItemCreate(BaseModel):
     collection: int = ...
     name: str = ...
     title: str = ...
-    # properties: dict = Field(...)
+    properties: dict = ...
 
 
 class ItemUpdate(BaseModel):
@@ -53,7 +53,7 @@ class ItemUpdate(BaseModel):
 
     name: str
     title: str
-    # properties: dict
+    properties: dict
 
 
 @convert_error
@@ -133,7 +133,7 @@ async def update_item(
         items.update()
         .returning(items)
         .where(items.c.id == item_id)
-        .values(**value.dict(include={"name", "title"}))
+        .values(**value.dict(include={"name", "title", "properties"}))
     )
 
     return await database.one(query, ItemDb.from_row)
