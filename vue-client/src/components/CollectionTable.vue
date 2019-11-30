@@ -2,15 +2,15 @@
 	<table>
 		<thead>
 			<tr>
-				<th v-for="header in headers" v-bind:key="header.id">
-					{{ header.label }}
+				<th v-for="field in fields" v-bind:key="field.id">
+					{{ field.label }}
 				</th>
 			</tr>
 		</thead>
 		<tbody>
-			<tr v-for="item in collection.items" v-bind:key="item.id">
-				<td v-for="header in headers" v-bind:key="header.id">
-					{{ getField(item, header.field) }}
+			<tr v-for="item in items" v-bind:key="item.id">
+				<td v-for="field in fields" v-bind:key="field.id">
+					{{ getField(item, field.field) }}
 				</td>
 			</tr>
 		</tbody>
@@ -24,7 +24,7 @@ export default{
 		return {
 		}
 	},
-	props: ["collection", "headers"],
+	props: ["items", "fields"],
 	methods: {
 		getField(item, field) {
 			const path = field.split(".")

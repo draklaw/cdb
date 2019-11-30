@@ -21,7 +21,7 @@ from starlette.status import HTTP_404_NOT_FOUND, HTTP_403_FORBIDDEN
 from starlette.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 
-from . import settings, db, user, collection, item
+from . import settings, db, user, collection, item, field
 
 from cdb_database.error import NotFoundError, AlreadyExistsError
 
@@ -37,6 +37,7 @@ app = FastAPI(
 app.include_router(user.router)
 app.include_router(collection.router)
 app.include_router(item.router)
+app.include_router(field.router)
 
 app.add_middleware(
     CORSMiddleware,

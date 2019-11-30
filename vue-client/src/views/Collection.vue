@@ -4,8 +4,8 @@
 			<h2>{{ collection.title }}</h2>
 			<collection-table
 				v-if="loaded"
-				v-bind:collection="collection"
-				v-bind:headers="headers"
+				v-bind:items="collection.items"
+				v-bind:fields="collection.fields"
 			/>
 		</template>
 		<loading v-else />
@@ -28,10 +28,6 @@ export default {
 		return {
 			store,
 			loaded: false,
-			headers:[
-				{ id:1, label:"Nom", field:"title" },
-				{ id:2, label:"Index", field:"properties.index" },
-			],
 		}
 	},
 	computed: {

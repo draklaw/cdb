@@ -94,10 +94,21 @@ class ItemDb(BaseModel):
 class FieldDb(BaseModel):
     id: int = Field(..., primary_key=True)
     collection: int = Field(..., ForeignKey("collections.id"), index=True)
+    name: str = ...
     field: str = ...
     label: str = ...
     type: str = ...
     sort_index: int = ...
+    deleted: bool = False
+
+    class Config:
+        sql_alchemy = [
+            UniqueConstraint("collection", "name"),
+        ]
+
+    @classmethod
+    def from_row(cls, row):
+        return cls(**row)
 
 
 users = create_table("users", UserDb)

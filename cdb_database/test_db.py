@@ -25,6 +25,7 @@ from .collection import (
     link_user_to_collection,
 )
 from .item import create_item, ItemDb
+from .field import create_field, FieldDb
 
 
 class Builder:
@@ -32,6 +33,7 @@ class Builder:
         self.users = []
         self.collections = []
         self.items = []
+        self.fields = []
 
     def add_user(self, **kwargs):
         user = UserDb(
@@ -57,6 +59,14 @@ class Builder:
         self.items.append(item)
         return item
 
+    def add_field(self, **kwargs):
+        field = FieldDb(
+            id = len(self.fields) + 1,
+            **kwargs,
+        )
+        self.fields.append(field)
+        return field
+
     async def fill_database(self, database: Database):
         for user in self.users:
             await create_user(database, user)
@@ -66,6 +76,9 @@ class Builder:
 
         for item in self.items:
             await create_item(database, item)
+
+        for field in self.fields:
+            await create_field(database, field)
 
 
 builder = Builder()
@@ -170,6 +183,37 @@ test_test_items = build_items(test_test_col)
 test_public_items = build_items(test_public_col)
 test_deleted_items = build_items(test_deleted_col)
 disabled_public_items = build_items(disabled_public_col)
+
+
+def build_fields(collection):
+    return [
+        builder.add_field(
+            collection = collection.id,
+            name = "title",
+            field = "title",
+            label = "Title",
+            type = "string",
+            sort_index = 1,
+        ),
+        builder.add_field(
+            collection = collection.id,
+            name = "index",
+            field = "properties.index",
+            label = "Index",
+            type = "int",
+            sort_index = 2,
+        ),
+    ]
+
+
+admin_private_fields = build_fields(admin_private_col)
+admin_shared_fields = build_fields(admin_shared_col)
+admin_shared_edit_fields = build_fields(admin_shared_edit_col)
+admin_public_fields = build_fields(admin_public_col)
+test_test_fields = build_fields(test_test_col)
+test_public_fields = build_fields(test_public_col)
+test_deleted_fields = build_fields(test_deleted_col)
+disabled_public_fields = build_fields(disabled_public_col)
 
 
 async def fill_test_db(database: Database):

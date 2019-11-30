@@ -94,6 +94,10 @@ export class Api {
 	getItems(username, collectionName) {
 		return this.fetchJson(`/users/${username}/collections/${collectionName}/items`)
 	}
+
+	getFields(username, collectionName) {
+		return this.fetchJson(`/users/${username}/collections/${collectionName}/fields`)
+	}
 }
 
 export default new Api("http://localhost:8000/api")

@@ -111,9 +111,13 @@ export class Store {
 		await this.fetchCollections(username)
 		const collection = this.getCollection(username, collectionName)
 
-		const items = await api.getItems(username, collectionName)
+		const [items, fields] = await Promise.all([
+			api.getItems(username, collectionName),
+			api.getFields(username, collectionName),
+		])
 
 		Vue.set(collection, "items", items)
+		Vue.set(collection, "fields", fields)
 	}
 
 	async tryGetSavedUser() {
