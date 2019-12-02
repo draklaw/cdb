@@ -1,0 +1,28 @@
+@mixin button {
+	padding: $small-margin $medium-margin;
+
+	border: none;
+	border-radius: $small-margin;
+
+	&:hover {
+		filter: brightness(1.1);
+	}
+}
+
+.cdbPositiveButton {
+	@include button;
+
+	background-color: $positive-color;
+}
+
+.cdbNegativeButton {
+	@include button;
+
+	background-color: $negative-color;
+}
+
+.cdbNeutralButton {
+	@include button;
+
+	background-color: $neutral-color;
+}

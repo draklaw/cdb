@@ -37,6 +37,7 @@ class FieldIn(BaseModel):
     label: str = ...
     type: str = ...
     sort_index: int = -1
+    width: float = -1.0
 
 
 class FieldCreate(BaseModel):
@@ -46,6 +47,7 @@ class FieldCreate(BaseModel):
     label: str = ...
     type: str = ...
     sort_index: int = -1
+    width: float = -1.0
 
 
 class FieldUpdate(BaseModel):
@@ -54,6 +56,7 @@ class FieldUpdate(BaseModel):
     label: str
     type: str
     sort_index: int
+    width: float
 
 
 @convert_error
@@ -131,7 +134,7 @@ async def update_field(
         fields.update()
         .returning(fields)
         .where(fields.c.id == field_id)
-        .values(**value.dict(include={"name", "field", "label", "type", "sort_index"}))
+        .values(**value.dict(include={"name", "field", "label", "type", "sort_index", "width"}))
     )
 
     return await database.one(query, FieldDb.from_row)

@@ -1,5 +1,5 @@
 <template>
-	<div class="home">
+	<div id="cdbHome">
 		<h2>Home page</h2>
 
 		<ul v-if="loaded">
@@ -47,3 +47,12 @@ export default {
 	},
 }
 </script>
+
+
+<style lang="scss">
+@import "@/style/globals.scss";
+
+#cdbHome {
+	padding: $medium-margin;
+}
+</style>

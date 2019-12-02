@@ -1,10 +1,28 @@
 <template>
 	<div id="app">
-		<h1>CDB</h1>
-		<div v-if="user">
-			Logged as {{user.username}}
-			<button v-on:click="logout">Logout</button>
-		</div>
+		<header id="cdbHeader">
+			<h1><router-link to="/">CDB</router-link></h1>
+			<div v-if="user">
+				<button
+					v-on:click="addCollection"
+					class="cdbNeutralButton"
+				>
+					+
+				</button>
+			</div>
+			<div v-if="user">
+				Logged as {{user.username}}
+				<button
+					v-on:click="logout"
+					class="cdbNeutralButton"
+				>
+					Logout
+				</button>
+			</div>
+			<div v-else>
+				Not logged in
+			</div>
+		</header>
 
 		<router-view  v-if="user" />
 		<login v-else />
@@ -40,10 +58,41 @@ export default {
 </script>
 
 <style lang="scss">
+@import "@/style/globals.scss";
+@import "@/style/button.scss";
+
+body {
+	margin: 0px;
+}
+
 #app {
 	font-family: 'Avenir', Helvetica, Arial, sans-serif;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	color: #2c3e50;
+}
+
+#cdbHeader {
+	display: flex;
+	align-items: center;
+
+	background-color: $light-background-color;
+	border-bottom: 1px solid $light-border-color;
+
+	h1 {
+		flex-grow: 1;
+		font-size: 1.5em;
+		margin: $small-margin;
+	}
+
+	div {
+		margin: $small-margin;
+
+		.cdbNeutralButton {
+			font-size: 80%;
+			margin-left: 0.5rem;
+			padding: .25rem .5rem;
+		}
+	}
 }
 </style>

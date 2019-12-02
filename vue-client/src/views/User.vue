@@ -1,5 +1,5 @@
 <template>
-	<div class="user">
+	<div id="cdbUser">
 		<template v-if="loaded && user">
 			<h2>{{ user.username }}'s collections</h2>
 
@@ -57,3 +57,12 @@ export default {
 	},
 }
 </script>
+
+
+<style lang="scss">
+@import "@/style/globals.scss";
+
+#cdbUser {
+	padding: $medium-margin;
+}
+</style>

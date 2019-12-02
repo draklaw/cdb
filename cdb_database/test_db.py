@@ -194,6 +194,7 @@ def build_fields(collection):
             label = "Title",
             type = "string",
             sort_index = 1,
+            width = -1.0,
         ),
         builder.add_field(
             collection = collection.id,
@@ -202,6 +203,7 @@ def build_fields(collection):
             label = "Index",
             type = "int",
             sort_index = 2,
+            width = 4,
         ),
     ]
 

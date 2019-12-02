@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div id="cdbCollection">
 		<template v-if="loaded">
 			<h2>{{ collection.title }}</h2>
 			<search-field v-model="searchQuery" />
@@ -7,6 +7,7 @@
 				v-if="loaded"
 				v-bind:items="filteredItems"
 				v-bind:fields="collection.fields"
+				class="cdbCollectionTable"
 			/>
 		</template>
 		<loading v-else />
@@ -55,9 +56,9 @@ export default {
 					return title.includes(query)
 				}
 			)
-		}
+		},
 	},
-	methods:{
+	methods: {
 		async update() {
 			this.loaded = false
 			await this.store.fetchCollection(this.username, this.collectionName)
@@ -66,6 +67,20 @@ export default {
 	},
 	async created() {
 		await this.update()
-	}
+	},
 }
 </script>
+
+
+
+<style lang="scss">
+@import "@/style/globals.scss";
+
+#cdbCollection {
+	padding: $medium-margin;
+}
+
+.cdbCollectionTable{
+	width: 100%;
+}
+</style>

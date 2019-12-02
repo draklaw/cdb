@@ -2,7 +2,14 @@
 	<table>
 		<thead>
 			<tr>
-				<th v-for="field in fields" v-bind:key="field.id">
+				<th
+					v-for="field in fields"
+					v-bind:key="field.id"
+					v-bind:style="{
+						minWidth: field.width > 0? field.width + 'em': null,
+						width: field.width < 0? (-field.width / totalStretch * 100) + '%': null,
+					}"
+				>
 					{{ field.label }}
 				</th>
 			</tr>
@@ -20,18 +27,24 @@
 
 <script>
 export default{
-	data() {
-		return {
-		}
-	},
 	props: ["items", "fields"],
+	computed: {
+		totalStretch() {
+			let totalStretch = 0
+			for(const field of this.fields) {
+				if(field.width < 0)
+					totalStretch -= field.width
+			}
+			return totalStretch
+		},
+	},
 	methods: {
 		getField(item, field) {
 			const path = field.split(".")
 			for(const attr of path)
 				item = item[attr]
 			return item
-		}
+		},
 	},
 }
 </script>
