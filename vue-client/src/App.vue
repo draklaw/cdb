@@ -3,21 +3,19 @@
 		<header id="cdbHeader">
 			<h1><router-link to="/">CDB</router-link></h1>
 			<div v-if="user">
-				<button
+				<push-button
 					v-on:click="addCollection"
-					class="cdbNeutralButton"
 				>
 					+
-				</button>
+				</push-button>
 			</div>
 			<div v-if="user">
 				Logged as {{user.username}}
-				<button
+				<push-button
 					v-on:click="logout"
-					class="cdbNeutralButton"
 				>
 					Logout
-				</button>
+				</push-button>
 			</div>
 			<div v-else>
 				Not logged in
@@ -32,11 +30,13 @@
 <script>
 import store from '@/store/store.js'
 
+import PushButton from '@/components/PushButton.vue'
 import Login from '@/components/Login.vue'
 
 export default {
 	name: "app",
 	components: {
+		PushButton,
 		Login,
 	},
 	data() {
@@ -59,7 +59,6 @@ export default {
 
 <style lang="scss">
 @import "@/style/globals.scss";
-@import "@/style/button.scss";
 
 body {
 	margin: 0px;

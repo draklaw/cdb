@@ -20,14 +20,24 @@
 				placeholder="Password"
 			>
 		</div>
-		<input type="submit" value="Login" class="cdbPositiveButton">
+		<push-button
+			type="submit"
+			look="positive"
+		>
+			Login
+		</push-button>
 	</form>
 </template>
 
 <script>
 import store from "@/store/store.js"
 
+import PushButton from '@/components/PushButton.vue'
+
 export default {
+	components: {
+		PushButton,
+	},
 	props: {
 		redirectToUserPage: Boolean,
 	},

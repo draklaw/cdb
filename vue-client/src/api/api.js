@@ -32,15 +32,16 @@ export class Api {
 		return this.url + path;
 	}
 
-	fetch(path, init={}) {
+	async fetch(path, init={}) {
 		const headers = (init.headers !== undefined)? init.headers: new Headers();
 
 		if(this.token)
 			headers.set("Authorization", "Bearer " + this.token)
+		headers.set("Accept", "application/json")
 
 		const url = this.getUrl(path);
 		try {
-			return fetch(url, {
+			return await fetch(url, {
 				...init,
 				headers,
 			});
