@@ -120,6 +120,12 @@ export class Store {
 		Vue.set(collection, "fields", fields)
 	}
 
+	async createCollection(collection) {
+		console.log(`fetchCollection(${JSON.stringify(collection)})`)
+
+		await api.createCollection(this.user.username, collection)
+	}
+
 	async tryGetSavedUser() {
 		const user = JSON.parse(localStorage.getItem("user"))
 		const token = localStorage.getItem("token")

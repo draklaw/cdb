@@ -1,6 +1,6 @@
 <template>
 	<input
-		v-model="value"
+		v-bind:value="value"
 		v-on:input="$emit('input', $event.target.value)"
 		placeholder="Search"
 	/>

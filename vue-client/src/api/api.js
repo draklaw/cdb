@@ -39,6 +39,9 @@ export class Api {
 			headers.set("Authorization", "Bearer " + this.token)
 		headers.set("Accept", "application/json")
 
+		if(init.json)
+			init.body = JSON.stringify(init.json)
+
 		const url = this.getUrl(path);
 		try {
 			return await fetch(url, {
@@ -47,7 +50,7 @@ export class Api {
 			});
 		}
 		catch(error) {
-			throw new ApiError(`Network error: ${error.message}.`, { url });
+			throw new ApiError(`Network error: ${error.message}.`);
 		}
 	}
 
@@ -55,14 +58,16 @@ export class Api {
 		const response = await this.fetch(path, init);
 
 		if(!response.ok) {
-			let message = null
+			if(response.status == 422)
+				throw new ApiError("Unknown error")
+
 			try {
-				message = response.json().detail
+				const json = await response.json()
+				throw new ApiError(json.detail)
 			}
 			catch(error) {
-				message = `${message.status} ${message.statusText}`
+				throw new ApiError(`${response.status} ${response.statusText}`)
 			}
-			throw new ApiError(message);
 		}
 
 		return await response.json();
@@ -90,6 +95,13 @@ export class Api {
 
 	getCollections(username) {
 		return this.fetchJson(`/users/${username}/collections`)
+	}
+
+	createCollection(username, collection) {
+		return this.fetchJson(`/users/${username}/collections`, {
+			method: "POST",
+			json: collection,
+		})
 	}
 
 	getItems(username, collectionName) {

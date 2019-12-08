@@ -4,7 +4,7 @@
 			<h1><router-link to="/">CDB</router-link></h1>
 			<div v-if="user">
 				<push-button
-					v-on:click="addCollection"
+					v-on:click="newCollection"
 				>
 					+
 				</push-button>
@@ -52,7 +52,10 @@ export default {
 	methods: {
 		logout() {
 			this.store.logout()
-		}
+		},
+		newCollection() {
+			this.$router.push("/new-collection")
+		},
 	},
 }
 </script>

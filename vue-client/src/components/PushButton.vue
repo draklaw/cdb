@@ -1,7 +1,7 @@
 <template>
 	<button
-		v-bind:class="['cdbButton', lookClass]"
-		v-on:click="$emit('click')"
+		v-bind:class="classes"
+		v-on:click="!busy? $emit('click'): null"
 		v-bind:type="type"
 	>
 		<slot></slot>
@@ -10,6 +10,8 @@
 
 
 <script>
+import { capitalize } from "@/utils"
+
 export default {
 	props: {
 		type: {
@@ -20,10 +22,19 @@ export default {
 			default: "neutral",
 			type: String,
 		},
+		busy: {
+			default: false,
+			type: Boolean,
+		},
 	},
 	computed: {
-		lookClass() {
-			return "cdb" + this.look[0].toUpperCase() + this.look.slice(1) + "Button"
+		classes() {
+			const lookClass = `cdbButton${capitalize(this.look)}`
+			return {
+				cdbButton: true,
+				[lookClass]: true,
+				cdbButtonBusy: this.busy,
+			}
 		}
 	},
 }
@@ -44,15 +55,43 @@ export default {
 	}
 }
 
-.cdbPositiveButton {
+.cdbButtonPositive {
 	background-color: $positive-color;
 }
 
-.cdbNegativeButton {
+.cdbButtonNegative {
 	background-color: $negative-color;
 }
 
-.cdbNeutralButton {
+.cdbButtonNeutral {
 	background-color: $neutral-color;
 }
+
+$button-gradient-width: 1em;
+
+.cdbButton.cdbButtonBusy {
+	background:
+		$positive-color
+		repeating-linear-gradient(
+			to right,
+			$positive-color,
+			adjust-color($positive-color, $lightness: 10%) $button-gradient-width,
+			$positive-color 2 * $button-gradient-width,
+		)
+		repeat
+		scroll
+		0% 0%;
+	animation: 0.5s linear 0s infinite normal none running cdbButtonBusyAnimation;
+}
+
+@keyframes cdbButtonBusyAnimation {
+	from {
+		background-position: -2 * $button-gradient-width 0%;
+	}
+
+	to {
+		background-position: 0 0%;
+	}
+}
+
 </style>

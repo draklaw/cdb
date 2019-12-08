@@ -3,24 +3,23 @@
 		v-on:submit.prevent="submit"
 		id="cdbLoginForm"
 	>
-		<div class="cdbLoginFormField">
-			<label for="cdbLogin">Username:</label>
-			<input
-				id="cdbUsername"
-				v-model="username"
-				placeholder="Username"
-			>
-		</div>
-		<div class="cdbLoginFormField">
-			<label for="cdbPassword">Password:</label>
-			<input
-				id="cdbPassword"
-				v-model="password"
-				type="password"
-				placeholder="Password"
-			>
-		</div>
+		<message-box v-bind:messages="messages" />
+		<line-edit
+			id="cdbUsername"
+			v-model="username"
+			label="Username"
+			autofocus
+			required
+		/>
+		<line-edit
+			id="cdbPassword"
+			v-model="password"
+			label="Password"
+			password
+			required
+		/>
 		<push-button
+			v-bind:busy="busy"
 			type="submit"
 			look="positive"
 		>
@@ -33,23 +32,41 @@
 import store from "@/store/store.js"
 
 import PushButton from '@/components/PushButton.vue'
+import LineEdit from '@/components/LineEdit.vue'
+import MessageBox from '@/components/MessageBox.vue'
 
 export default {
 	components: {
 		PushButton,
+		LineEdit,
+		MessageBox,
 	},
 	props: {
 		redirectToUserPage: Boolean,
 	},
 	data(){
 		return{
-			username:"",
-			password:"",
+			username: "",
+			password: "",
+			busy: false,
+			messages: [],
 		}
 	},
 	methods:{
 		async submit(){
-			await store.login(this.username, this.password)
+			try {
+				this.busy = true
+				await store.login(this.username, this.password)
+			}
+			catch(error) {
+				this.messages = [{
+					message: error.message,
+					type: "negative",
+				}]
+				this.busy = false
+				return
+			}
+
 			if(store.user && this.redirectToUserPage)
 				this.$router.push(`/${store.user.username}`)
 		}
