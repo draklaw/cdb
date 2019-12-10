@@ -81,7 +81,6 @@ export default {
 #cdbLoginForm {
 	width: 20rem;
 	margin: auto;
-	margin-top: 4rem;
 	padding: $large-margin;
 
 	background-color: $light-background-color;

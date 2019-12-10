@@ -1,8 +1,16 @@
 <template>
 	<div id="cdbCollection">
 		<template v-if="loaded">
-			<h2>{{ collection.title }}</h2>
-			<search-field v-model="searchQuery" />
+			<header>
+				<h2>{{ collection.title }}</h2>
+				<search-field v-model="searchQuery" />
+				<push-button
+					v-on:click="toggleNewItemPane"
+					look="positive"
+				>
+					+
+				</push-button>
+			</header>
 			<collection-table
 				v-if="loaded"
 				v-bind:items="filteredItems"
@@ -20,6 +28,7 @@ import store from '@/store/store.js'
 import Loading from '@/components/Loading.vue'
 import CollectionTable from '@/components/CollectionTable.vue'
 import SearchField from '@/components/SearchField.vue'
+import PushButton from '@/components/PushButton.vue'
 
 export default {
 	name: 'collection',
@@ -27,6 +36,7 @@ export default {
 		Loading,
 		CollectionTable,
 		SearchField,
+		PushButton,
 	},
 	data() {
 		return {
@@ -63,7 +73,10 @@ export default {
 			this.loaded = false
 			await this.store.fetchCollection(this.username, this.collectionName)
 			this.loaded = true
-		}
+		},
+		showNewItemPane() {
+
+		},
 	},
 	async created() {
 		await this.update()
@@ -77,7 +90,28 @@ export default {
 @import "@/style/globals.scss";
 
 #cdbCollection {
-	padding: $medium-margin;
+	flex: 1;
+
+	width: 66em;
+	height: auto;
+
+	background: $light-background-color;
+
+	& > * {
+		padding: 0 $medium-margin;
+	}
+
+	header {
+		display: flex;
+		align-items: center;
+
+		border-bottom: 1px solid $light-border-color;
+
+		h2 {
+			margin: $small-margin 0;
+			flex-grow: 1;
+		}
+	}
 }
 
 .cdbCollectionTable{

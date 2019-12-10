@@ -68,6 +68,14 @@ body {
 }
 
 #app {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+
+	min-height: 100vh;
+
+	background-color: $background-background-color;
+
 	font-family: 'Avenir', Helvetica, Arial, sans-serif;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
@@ -77,6 +85,8 @@ body {
 #cdbHeader {
 	display: flex;
 	align-items: center;
+
+	width: 100%;
 
 	background-color: $light-background-color;
 	border-bottom: 1px solid $light-border-color;
