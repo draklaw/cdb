@@ -92,10 +92,9 @@ export default {
 #cdbCollection {
 	flex: 1;
 
-	width: 66em;
-	height: auto;
+	width: $normal-page-width;
 
-	background: $light-background-color;
+	background: $main-background-color;
 
 	& > * {
 		padding: 0 $medium-margin;
@@ -105,11 +104,16 @@ export default {
 		display: flex;
 		align-items: center;
 
+		padding: $small-margin $medium-margin;
 		border-bottom: 1px solid $light-border-color;
 
 		h2 {
 			margin: $small-margin 0;
 			flex-grow: 1;
+		}
+
+		.cdbSearchField {
+			margin: 0 $small-margin;
 		}
 	}
 }

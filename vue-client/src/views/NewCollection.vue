@@ -11,7 +11,13 @@
 				autofocus
 				required
 			/>
-			<line-edit v-model="name" id="cdbName" label="Name" />
+			<line-edit
+				v-model="name"
+				id="cdbName"
+				label="Name"
+				required
+				pattern="\w*"
+			/>
 			<checkbox
 				v-model="isPublic"
 				v-bind:busy="submitting"
@@ -19,7 +25,24 @@
 				label="Public collection"
 				required
 			/>
-			<push-button type="submit" look="positive">
+			<div>
+				Headers:
+			</div>
+			<header-form
+				v-for="[i, header] in headers.entries()"
+				v-bind:key="i"
+				v-bind:value="header"
+				v-on:delete="deleteHeader(i)"
+				delete-button
+			/>
+			<header-form
+				v-bind:value="newHeader"
+				v-on:add="addHeader"
+			/>
+			<push-button
+				type="submit"
+				look="positive"
+			>
 				Create
 			</push-button>
 		</form>
@@ -35,13 +58,16 @@ import LineEdit from "@/components/LineEdit.vue"
 import Checkbox from "@/components/Checkbox.vue"
 import PushButton from "@/components/PushButton.vue"
 import MessageBox from "@/components/MessageBox.vue"
+import HeaderForm from "@/components/HeaderForm.vue"
 
 export default {
+	name: "new-collection",
 	components: {
 		LineEdit,
 		Checkbox,
 		PushButton,
 		MessageBox,
+		HeaderForm,
 	},
 	data() {
 		return {
@@ -51,6 +77,13 @@ export default {
 			isPublic: false,
 			submitting: false,
 			messages: [],
+			newHeader: {
+				label: "",
+				name: "",
+				type: "text",
+				columnIndex: -1,
+			},
+			headers: [],
 		}
 	},
 	methods: {
@@ -62,6 +95,7 @@ export default {
 				title: this.title,
 				name: this.name,
 				public: this.isPublic,
+				headers: this.headers,
 			}
 
 			this.submitting = true
@@ -77,6 +111,19 @@ export default {
 				this.submitting = false
 			}
 		},
+		addHeader() {
+			const header = Object.assign({}, this.newHeader)
+			this.headers.push(header)
+			this.newHeader = {
+				label: "",
+				name: "",
+				type: "text",
+				columnIndex: -1,
+			}
+		},
+		deleteHeader(index) {
+			this.headers.splice(index, 1)
+		},
 	},
 }
 </script>
@@ -86,7 +133,13 @@ export default {
 @import "@/style/globals.scss";
 
 #cdbNewCollection {
-	width: 40rem;
-	margin: auto;
+	flex: 1;
+
+	width: $normal-page-width;
+
+	padding: 0 $medium-margin;
+
+
+	background: $main-background-color;
 }
 </style>

@@ -5,10 +5,8 @@
 			v-bind:for="inputId"
 			v-bind:value="value"
 			v-on:input="$emit('input', $event.target.value)"
-			v-bind:autofocus="autofocus"
 			v-bind:placeholder="label"
-			v-bind:type="password? 'password': 'text'"
-			v-bind:required="required"
+			v-bind="$attrs"
 		>
 	</div>
 </template>
@@ -16,6 +14,7 @@
 
 <script>
 export default {
+	inheritAttrs: false,
 	data() {
 		return {
 		}
@@ -24,18 +23,6 @@ export default {
 		id: String,
 		label: String,
 		value: String,
-		autofocus: {
-			default: false,
-			type: Boolean,
-		},
-		password: {
-			default: false,
-			type: Boolean,
-		},
-		required: {
-			default: false,
-			type: Boolean,
-		}
 	},
 	computed: {
 		inputId() {
@@ -64,8 +51,6 @@ export default {
 
 		border: 1px solid $light-border-color;
 		border-radius: $small-margin;
-
-		background-color: rgb(255, 255, 255);
 
 		&:focus {
 			border-color: $medium-border-color;

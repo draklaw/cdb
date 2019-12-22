@@ -54,7 +54,7 @@ export default {
 
 			margin-right: $small-margin;
 
-			background-color: $light-background-color;
+			background-color: $input-background-color;
 			border: 1px solid $light-border-color;
 			border-radius: $small-margin;
 
@@ -65,11 +65,12 @@ export default {
 		}
 
 		&:hover::before {
-			background-color: $light-background-color;
+			background-color: $input-highlight-background-color;
 		}
 	}
 
 	input:focus ~ label::before {
+		background-color: $input-highlight-background-color;
 		border-color: $medium-border-color;
 	}
 

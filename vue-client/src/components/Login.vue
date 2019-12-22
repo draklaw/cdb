@@ -15,7 +15,7 @@
 			id="cdbPassword"
 			v-model="password"
 			label="Password"
-			password
+			type="password"
 			required
 		/>
 		<push-button
@@ -83,7 +83,7 @@ export default {
 	margin: auto;
 	padding: $large-margin;
 
-	background-color: $light-background-color;
+	background-color: $main-background-color;
 	border: 1px solid $light-border-color;
 	border-radius: $medium-margin;
 

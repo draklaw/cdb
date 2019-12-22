@@ -39,7 +39,7 @@ export default {
 	.cdbMessage {
 		padding: $small-margin;
 
-		background-color: $light-background-color;
+		background-color: $main-background-color;
 		border: 1px solid $light-border-color;
 		border-radius: $small-margin;
 	}

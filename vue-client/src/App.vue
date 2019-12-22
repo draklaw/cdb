@@ -79,7 +79,7 @@ body {
 	font-family: 'Avenir', Helvetica, Arial, sans-serif;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	color: #2c3e50;
+	color: $text-color;
 }
 
 #cdbHeader {
@@ -88,13 +88,21 @@ body {
 
 	width: 100%;
 
-	background-color: $light-background-color;
+	background-color: $main-background-color;
 	border-bottom: 1px solid $light-border-color;
+
+	z-index: 1;
+	box-shadow: 0ex .15ex .3ex rgba(0, 0, 0, .25);
 
 	h1 {
 		flex-grow: 1;
 		font-size: 1.5em;
 		margin: $small-margin;
+
+		a {
+			text-decoration: none;
+			color: $text-color;
+		}
 	}
 
 	div {
