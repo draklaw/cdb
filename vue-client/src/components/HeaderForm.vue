@@ -47,7 +47,7 @@
 
 <script>
 import { toIdentifier } from '@/utils'
-import PushButton from '@/components/PushButton.vue'
+import { PushButton } from '@/components/widgets'
 
 export default{
 	components: {

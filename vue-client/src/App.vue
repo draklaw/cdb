@@ -30,7 +30,7 @@
 <script>
 import store from '@/store/store.js'
 
-import PushButton from '@/components/PushButton.vue'
+import { PushButton } from '@/components/widgets'
 import Login from '@/components/Login.vue'
 
 export default {

@@ -27,8 +27,7 @@ import store from '@/store/store.js'
 
 import Loading from '@/components/Loading.vue'
 import CollectionTable from '@/components/CollectionTable.vue'
-import SearchField from '@/components/SearchField.vue'
-import PushButton from '@/components/PushButton.vue'
+import { SearchField, PushButton } from '@/components/widgets'
 
 export default {
 	name: 'collection',

@@ -54,9 +54,7 @@ import { toIdentifier } from "@/utils"
 
 import store from '@/store/store.js'
 
-import LineEdit from "@/components/LineEdit.vue"
-import Checkbox from "@/components/Checkbox.vue"
-import PushButton from "@/components/PushButton.vue"
+import { LineEdit, Checkbox, PushButton } from "@/components/widgets"
 import MessageBox from "@/components/MessageBox.vue"
 import HeaderForm from "@/components/HeaderForm.vue"
 

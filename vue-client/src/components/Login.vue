@@ -31,8 +31,7 @@
 <script>
 import store from "@/store/store.js"
 
-import PushButton from '@/components/PushButton.vue'
-import LineEdit from '@/components/LineEdit.vue'
+import { PushButton, LineEdit } from '@/components/widgets'
 import MessageBox from '@/components/MessageBox.vue'
 
 export default {
