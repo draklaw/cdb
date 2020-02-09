@@ -1,32 +1,42 @@
 <template>
-	<div id="cdbHome">
-		<h2>Home page</h2>
-
-		<ul v-if="loaded">
+	<page>
+		<cdb-table
+			:items="items"
+			:fields="fields"
+		/>
+		<ul>
 			<li v-for="user in users" v-bind:key="user.id">
 				<router-link v-bind:to="`/${user.username}`">
 					{{ user.username }}
 				</router-link>
 			</li>
 		</ul>
-		<loading v-else />
-	</div>
+	</page>
 </template>
 
 <script>
 import store from '@/store/store.js'
 
-import Loading from '@/components/Loading.vue'
+import Page from '@/components/Page.vue'
+import CdbTable from '@/components/CdbTable.vue'
 
 export default {
 	name: 'home',
 	components: {
-		Loading,
+		Page,
+		CdbTable,
 	},
 	data() {
 		return {
 			store,
-			loaded: false,
+			fields: [
+				{
+					id: 0,
+					width: -1,
+					label: "User",
+					field: "user.username",
+				},
+			],
 		}
 	},
 	computed: {
@@ -34,15 +44,24 @@ export default {
 			return Object.values(this.store.users)
 				.sort(user => user.username)
 		},
+		items() {
+			const items = []
+			for(const user of Object.values(this.store.users)) {
+				items.push({
+					user,
+				})
+			}
+			return items
+		},
 	},
 	methods: {
 		async update() {
-			this.loaded = false
+			this.store.loading = true
 			await this.store.fetchUsers()
-			this.loaded = true
+			this.store.loading = false
 		},
 	},
-	async created() {
+	async mounted() {
 		await this.update()
 	},
 }

@@ -11,7 +11,7 @@
 					+
 				</push-button>
 			</header>
-			<collection-table
+			<cdb-table
 				v-if="loaded"
 				v-bind:items="filteredItems"
 				v-bind:fields="collection.fields"
@@ -26,14 +26,14 @@
 import store from '@/store/store.js'
 
 import Loading from '@/components/Loading.vue'
-import CollectionTable from '@/components/CollectionTable.vue'
+import CdbTable from '@/components/CdbTable.vue'
 import { SearchField, PushButton } from '@/components/widgets'
 
 export default {
 	name: 'collection',
 	components: {
 		Loading,
-		CollectionTable,
+		CdbTable,
 		SearchField,
 		PushButton,
 	},

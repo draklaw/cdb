@@ -12,6 +12,8 @@ export class Store {
 		this.usersByUsername = {}
 		this.collections = {}
 
+		this.loading = false
+
 		this.tryGetSavedUser()
 	}
 

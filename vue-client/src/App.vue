@@ -1,43 +1,15 @@
 <template>
-	<div id="app">
-		<header id="cdbHeader">
-			<h1><router-link to="/">CDB</router-link></h1>
-			<div v-if="user">
-				<push-button
-					v-on:click="newCollection"
-				>
-					+
-				</push-button>
-			</div>
-			<div v-if="user">
-				Logged as {{user.username}}
-				<push-button
-					v-on:click="logout"
-				>
-					Logout
-				</push-button>
-			</div>
-			<div v-else>
-				Not logged in
-			</div>
-		</header>
-
-		<router-view  v-if="user" />
-		<login v-else />
-	</div>
+	<router-view/>
 </template>
 
 <script>
 import store from '@/store/store.js'
 
-import { PushButton } from '@/components/widgets'
-import Login from '@/components/Login.vue'
+import '@/style/main.scss'
 
 export default {
 	name: "app",
 	components: {
-		PushButton,
-		Login,
 	},
 	data() {
 		return {

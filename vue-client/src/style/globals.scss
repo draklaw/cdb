@@ -1,4 +1,15 @@
+@import '@/style/colors.scss';
+
+
+@mixin cdb-shadow {
+	box-shadow: 0 0 2px rgba(0, 0, 0, 0.12), 0 2px 2px rgba(0, 0, 0, 0.2);
+	transition: box-shadow 0.3s ease;
+}
+
 $normal-page-width: 60rem;
+
+$main-font-family: 'Open Sans', sans-serif;
+$title-font-family: 'Roboto', sans-serif;
 
 $small-margin: 0.5rem;
 $medium-margin: 1rem;

@@ -1,5 +1,5 @@
 <template>
-	<table>
+	<table class="cdb-table">
 		<thead>
 			<tr>
 				<th
@@ -48,3 +48,13 @@ export default{
 	},
 }
 </script>
+
+
+<style lang="scss">
+@import "@/style/globals.scss";
+
+.cdb-table {
+	width: 100%;
+}
+
+</style>
