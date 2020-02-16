@@ -4,40 +4,34 @@
 		id="cdbLoginForm"
 	>
 		<message-box v-bind:messages="messages" />
-		<line-edit
+		<input
 			id="cdbUsername"
+			type="text"
 			v-model="username"
-			label="Username"
+			placeholder="Username"
 			autofocus
 			required
 		/>
-		<line-edit
+		<input
 			id="cdbPassword"
-			v-model="password"
-			label="Password"
 			type="password"
+			v-model="password"
+			placeholder="Password"
 			required
 		/>
-		<push-button
-			v-bind:busy="busy"
-			type="submit"
-			look="positive"
-		>
+		<button>
 			Login
-		</push-button>
+		</button>
 	</form>
 </template>
 
 <script>
 import store from "@/store/store.js"
 
-import { PushButton, LineEdit } from '@/components/widgets'
 import MessageBox from '@/components/MessageBox.vue'
 
 export default {
 	components: {
-		PushButton,
-		LineEdit,
 		MessageBox,
 	},
 	props: {
@@ -75,39 +69,4 @@ export default {
 
 
 <style lang="scss">
-@import "@/style/globals.scss";
-
-#cdbLoginForm {
-	width: 20rem;
-	margin: auto;
-	padding: $large-margin;
-
-	background-color: $main-background-color;
-	border: 1px solid $light-border-color;
-	border-radius: $medium-margin;
-
-	label {
-		display: block;
-		font-size: 80%;
-	}
-
-	.cdbLoginFormField {
-		margin-bottom: $medium-margin;
-
-		input {
-			width: 100%;
-			padding: $small-margin;
-			box-sizing: border-box;
-
-			border: 1px solid $light-border-color;
-			border-radius: $small-margin;
-
-			background-color: rgb(255, 255, 255);
-		}
-	}
-
-	.cdbPositiveButton {
-		text-align: right;
-	}
-}
 </style>

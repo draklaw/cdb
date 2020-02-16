@@ -63,6 +63,8 @@ export class Store {
 		console.log(`fetchUser(${username})`)
 
 		const user = await api.getUser(username)
+		user.collections = []
+		user.collectionsByName = {}
 
 		Vue.set(this.users, user.id, user)
 		Vue.set(this.usersByUsername, user.username, user.id)
@@ -78,6 +80,9 @@ export class Store {
 		const usersByUsername = {}
 
 		for(const user of users) {
+			user.collections = []
+			user.collectionsByName = {}
+
 			usersById[user.id] = user
 			usersByUsername[user.username] = user.id
 		}

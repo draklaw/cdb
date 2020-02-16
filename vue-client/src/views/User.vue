@@ -1,30 +1,26 @@
 <template>
-	<div id="cdbUser">
-		<template v-if="loaded && user">
-			<h2>{{ user.username }}'s collections</h2>
+	<page>
+		<h2>{{ user.username }}'s collections</h2>
 
-			<ul>
-				<li v-for="col in collections" v-bind:key="col.id">
-					<router-link v-bind:to="`/${user.username}/${col.name}`">
-						{{ col.name }}
-					</router-link>
-				</li>
-			</ul>
-		</template>
-		<p v-else-if="loaded">Unknown user</p>
-		<loading v-else />
-	</div>
+		<ul>
+			<li v-for="col in collections" v-bind:key="col.id">
+				<router-link v-bind:to="`/${user.username}/${col.name}`">
+					{{ col.name }}
+				</router-link>
+			</li>
+		</ul>
+	</page>
 </template>
 
 <script>
 import store from '@/store/store.js'
 
-import Loading from '@/components/Loading.vue'
+import Page from '@/components/Page.vue'
 
 export default {
 	name: 'user',
 	components: {
-		Loading,
+		Page,
 	},
 	data() {
 		return {
@@ -47,9 +43,9 @@ export default {
 	},
 	methods: {
 		async update() {
-			this.loaded = false
+			this.store.loading = true
 			await this.store.fetchCollections(this.username)
-			this.loaded = true
+			this.store.loading = false
 		},
 	},
 	async created() {
@@ -60,9 +56,4 @@ export default {
 
 
 <style lang="scss">
-@import "@/style/globals.scss";
-
-#cdbUser {
-	padding: $medium-margin;
-}
 </style>

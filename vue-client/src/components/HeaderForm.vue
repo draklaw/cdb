@@ -7,13 +7,15 @@
 			v-model="value.label"
 			v-on:input="updateName"
 			class="cdbHeaderFormLabel"
+			placeholder="Label"
 			required
 		>
 		<input
 			v-model="value.name"
 			class="cdbHeaderFormName"
-			required
+			placeholder="Name"
 			pattern="\w*"
+			required
 		>
 		<select v-model="value.type" class="cdbHeaderFormType">
 			<option>text</option>
@@ -27,31 +29,27 @@
 			required
 		>
 
-		<push-button
+		<button
 			v-if="deleteButton"
 			v-on:click="$emit('delete', value)"
-			look="negative"
 		>
 			Remove
-		</push-button>
-		<push-button
+		</button>
+		<button
 			v-else
 			v-on:click="$emit('add', value)"
-			look="positive"
 		>
 			Add
-		</push-button>
+		</button>
 	</form>
 </template>
 
 
 <script>
 import { toIdentifier } from '@/utils'
-import { PushButton } from '@/components/widgets'
 
 export default{
 	components: {
-		PushButton,
 	},
 	props: {
 		value: {
@@ -82,17 +80,4 @@ export default{
 
 
 <style lang="scss">
-
-.cdbHeaderForm {
-	display: flex;
-	width: 100%;
-
-	.cdbHeaderFormLabel {
-		flex: 1;
-	}
-
-	.cdbHeaderFormName {
-		flex: 1;
-	}
-}
 </style>

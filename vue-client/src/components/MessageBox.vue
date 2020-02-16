@@ -31,25 +31,4 @@ export default {
 
 
 <style lang="scss">
-@import "@/style/globals.scss";
-
-.cdbMessageBox {
-	margin-bottom: $medium-margin;
-
-	.cdbMessage {
-		padding: $small-margin;
-
-		background-color: $main-background-color;
-		border: 1px solid $light-border-color;
-		border-radius: $small-margin;
-	}
-
-	.cdbMessagePositive {
-		background-color: $positive-background-color;
-	}
-
-	.cdbMessageNegative {
-		background-color: $negative-background-color;
-	}
-}
 </style>

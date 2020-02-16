@@ -1,41 +1,37 @@
 <template>
-	<div id="cdbCollection">
-		<template v-if="loaded">
-			<header>
-				<h2>{{ collection.title }}</h2>
-				<search-field v-model="searchQuery" />
-				<push-button
-					v-on:click="toggleNewItemPane"
-					look="positive"
-				>
-					+
-				</push-button>
-			</header>
-			<cdb-table
-				v-if="loaded"
-				v-bind:items="filteredItems"
-				v-bind:fields="collection.fields"
-				class="cdbCollectionTable"
+	<page>
+		<header>
+			<h2>{{ collection.title }}</h2>
+			<input
+				type="text"
+				v-model="searchQuery"
+				placeholder="Search"
 			/>
-		</template>
-		<loading v-else />
-	</div>
+			<router-link
+				to="/new-collection"
+			>
+				+
+			</router-link>
+		</header>
+		<!-- <cdb-table
+			v-bind:items="filteredItems"
+			v-bind:fields="collection.fields"
+			class="cdbCollectionTable"
+		/> -->
+	</page>
 </template>
 
 <script>
 import store from '@/store/store.js'
 
-import Loading from '@/components/Loading.vue'
-import CdbTable from '@/components/CdbTable.vue'
-import { SearchField, PushButton } from '@/components/widgets'
+import Page from '@/components/Page.vue'
+// import CdbTable from '@/components/CdbTable.vue'
 
 export default {
 	name: 'collection',
 	components: {
-		Loading,
-		CdbTable,
-		SearchField,
-		PushButton,
+		Page,
+		// CdbTable,
 	},
 	data() {
 		return {
@@ -69,9 +65,9 @@ export default {
 	},
 	methods: {
 		async update() {
-			this.loaded = false
+			this.store.loading = true
 			await this.store.fetchCollection(this.username, this.collectionName)
-			this.loaded = true
+			this.store.loading = false
 		},
 		showNewItemPane() {
 
@@ -86,38 +82,4 @@ export default {
 
 
 <style lang="scss">
-@import "@/style/globals.scss";
-
-#cdbCollection {
-	flex: 1;
-
-	width: $normal-page-width;
-
-	background: $main-background-color;
-
-	& > * {
-		padding: 0 $medium-margin;
-	}
-
-	header {
-		display: flex;
-		align-items: center;
-
-		padding: $small-margin $medium-margin;
-		border-bottom: 1px solid $light-border-color;
-
-		h2 {
-			margin: $small-margin 0;
-			flex-grow: 1;
-		}
-
-		.cdbSearchField {
-			margin: 0 $small-margin;
-		}
-	}
-}
-
-.cdbCollectionTable{
-	width: 100%;
-}
 </style>

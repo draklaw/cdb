@@ -51,10 +51,4 @@ export default{
 
 
 <style lang="scss">
-@import "@/style/globals.scss";
-
-.cdb-table {
-	width: 100%;
-}
-
 </style>

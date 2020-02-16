@@ -1,30 +1,35 @@
 <template>
-	<div id="cdbNewCollection">
+	<page>
 		<h2>Create a new collection</h2>
 		<form v-on:submit.prevent="createCollection">
 			<message-box v-bind:messages="messages" />
-			<line-edit
+			<input
+				id="cdbTitle"
+				type="text"
 				v-model="title"
 				v-on:input="updateName"
-				id="cdbTitle"
-				label="Title"
+				placeholder="Title"
 				autofocus
 				required
 			/>
-			<line-edit
-				v-model="name"
+			<input
 				id="cdbName"
-				label="Name"
-				required
+				type="text"
+				v-model="name"
+				placeholder="Name"
 				pattern="\w*"
+				required
 			/>
-			<checkbox
+			<input
+				id="cdbPublic"
+				type="checkbox"
 				v-model="isPublic"
 				v-bind:busy="submitting"
-				id="cdbPublic"
-				label="Public collection"
 				required
 			/>
+			<label for="cdbPublic">
+				Public collection
+			</label>
 			<div>
 				Headers:
 			</div>
@@ -39,14 +44,13 @@
 				v-bind:value="newHeader"
 				v-on:add="addHeader"
 			/>
-			<push-button
+			<button
 				type="submit"
-				look="positive"
 			>
 				Create
-			</push-button>
+			</button>
 		</form>
-	</div>
+	</page>
 </template>
 
 <script>
@@ -54,16 +58,14 @@ import { toIdentifier } from "@/utils"
 
 import store from '@/store/store.js'
 
-import { LineEdit, Checkbox, PushButton } from "@/components/widgets"
+import Page from "@/components/Page.vue"
 import MessageBox from "@/components/MessageBox.vue"
 import HeaderForm from "@/components/HeaderForm.vue"
 
 export default {
 	name: "new-collection",
 	components: {
-		LineEdit,
-		Checkbox,
-		PushButton,
+		Page,
 		MessageBox,
 		HeaderForm,
 	},
@@ -128,16 +130,4 @@ export default {
 
 
 <style lang="scss">
-@import "@/style/globals.scss";
-
-#cdbNewCollection {
-	flex: 1;
-
-	width: $normal-page-width;
-
-	padding: 0 $medium-margin;
-
-
-	background: $main-background-color;
-}
 </style>

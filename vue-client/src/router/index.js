@@ -7,7 +7,6 @@ import NotFound from '@/views/NotFound.vue'
 import User from '@/views/User.vue'
 import Collection from '@/views/Collection.vue'
 import NewCollection from '@/views/NewCollection.vue'
-import TestView from '@/views/TestView.vue'
 
 Vue.use(VueRouter)
 
@@ -26,11 +25,6 @@ const routes = [
 		path: '/new-collection',
 		name: 'new-collection',
 		component: NewCollection
-	},
-	{
-		path: '/test-view',
-		name: 'test-view',
-		component: TestView
 	},
 	{
 		path: '/:username',

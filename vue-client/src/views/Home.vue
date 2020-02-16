@@ -1,9 +1,6 @@
 <template>
 	<page>
-		<cdb-table
-			:items="items"
-			:fields="fields"
-		/>
+		<h2>Home</h2>
 		<ul>
 			<li v-for="user in users" v-bind:key="user.id">
 				<router-link v-bind:to="`/${user.username}`">
@@ -18,13 +15,11 @@
 import store from '@/store/store.js'
 
 import Page from '@/components/Page.vue'
-import CdbTable from '@/components/CdbTable.vue'
 
 export default {
 	name: 'home',
 	components: {
 		Page,
-		CdbTable,
 	},
 	data() {
 		return {
@@ -69,9 +64,6 @@ export default {
 
 
 <style lang="scss">
-@import "@/style/globals.scss";
-
 #cdbHome {
-	padding: $medium-margin;
 }
 </style>
