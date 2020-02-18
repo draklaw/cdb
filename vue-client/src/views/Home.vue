@@ -1,10 +1,13 @@
 <template>
 	<page>
-		<h2>Home</h2>
+		<h2>My collections</h2>
 		<ul>
-			<li v-for="user in users" v-bind:key="user.id">
-				<router-link v-bind:to="`/${user.username}`">
-					{{ user.username }}
+			<li
+				v-for="[user, collection] in linkedUserCollections"
+				v-bind:key="collection.id"
+			>
+				<router-link v-bind:to="`/${user.username}/${collection.name}`">
+					{{ user.username }} / {{ collection.name }}
 				</router-link>
 			</li>
 		</ul>
@@ -24,40 +27,32 @@ export default {
 	data() {
 		return {
 			store,
-			fields: [
-				{
-					id: 0,
-					width: -1,
-					label: "User",
-					field: "user.username",
-				},
-			],
 		}
 	},
 	computed: {
-		users() {
-			return Object.values(this.store.users)
-				.sort(user => user.username)
-		},
-		items() {
-			const items = []
-			for(const user of Object.values(this.store.users)) {
-				items.push({
-					user,
+		linkedUserCollections() {
+			const tmp = this.store.user.linkedCollections
+				.map(id => {
+					const collection = this.store.collections[id]
+					const user = this.store.users[collection.owner]
+					return [user, collection]
 				})
-			}
-			return items
+				.sort(([user, collection]) => `${user.username}:${collection.name}`)
+			console.log(tmp)
+			return tmp
 		},
 	},
 	methods: {
 		async update() {
 			this.store.loading = true
-			await this.store.fetchUsers()
+			await this.store.fetchLinkedCollections(
+				this.store.user.username,
+			)
 			this.store.loading = false
 		},
 	},
-	async mounted() {
-		await this.update()
+	mounted() {
+		this.update()
 	},
 }
 </script>

@@ -10,8 +10,7 @@
 		</div>
 
 		<main class="cdb-content">
-			<login v-if="!user"/>
-			<div v-else-if="loading">
+			<div v-if="user && loading">
 				Loading...
 			</div>
 			<slot v-else></slot>
@@ -23,11 +22,8 @@
 <script>
 import store from '@/store/store.js'
 
-import Login from '@/components/Login.vue'
-
 export default {
 	components: {
-		Login,
 	},
 	props: {
 		title: {

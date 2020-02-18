@@ -40,9 +40,17 @@ router = APIRouter()
 )
 async def get_collections(
     username: str,
+    only_owned: bool = True,
     logged_user: user_db.UserDb = current_user,
     db: Database = transaction,
 ):
+    if not only_owned and username != logged_user.username or logged_user.is_admin:
+        raise HTTPException(
+            status_code = HTTP_403_FORBIDDEN,
+            detail =
+                "Accessing linked collections of other users is not allowed."
+        )
+
     user = await user_db.get_user(
         db,
         username = username,
@@ -53,6 +61,7 @@ async def get_collections(
         db,
         logged_user = logged_user,
         user_id = user.id,
+        only_owned = only_owned,
         include_private = user.id == logged_user.id or logged_user.is_admin,
         include_deleted = logged_user.is_admin,
     )

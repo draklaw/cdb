@@ -65,9 +65,13 @@ export class Store {
 		const user = await api.getUser(username)
 		user.collections = []
 		user.collectionsByName = {}
+		user.linkedCollections = []
 
 		Vue.set(this.users, user.id, user)
 		Vue.set(this.usersByUsername, user.username, user.id)
+
+		if (this.user && user.id == this.user.id)
+			Vue.set(this, "user", user)
 
 		return user
 	}
@@ -82,9 +86,13 @@ export class Store {
 		for(const user of users) {
 			user.collections = []
 			user.collectionsByName = {}
+			user.linkedCollections = []
 
 			usersById[user.id] = user
 			usersByUsername[user.username] = user.id
+
+			if (this.user && user.id == this.user.id)
+				Vue.set(this, "user", user)
 		}
 
 		Vue.set(this, "users", usersById)
@@ -110,6 +118,34 @@ export class Store {
 
 		Vue.set(user, "collections", collectionsIds)
 		Vue.set(user, "collectionsByName", collectionsByName)
+	}
+
+	async fetchLinkedCollections(username) {
+		console.log(`fetchLinkedCollections(${username})`)
+
+		await this.fetchUsers()
+		const user = this.getUser(username)
+
+		const collections = await api.getCollections(username, {
+			onlyOwned: false,
+		})
+
+		const collectionsIds = []
+		const collectionsByName = {}
+		const linkedCollections = []
+
+		for(const collection of collections) {
+			Vue.set(this.collections, collection.id, collection)
+
+			if (collection.owner == user.id)
+				collectionsIds.push(collection.id)
+			collectionsByName[collection.name] = collection.id
+			linkedCollections.push(collection.id)
+		}
+
+		Vue.set(user, "collections", collectionsIds)
+		Vue.set(user, "collectionsByName", collectionsByName)
+		Vue.set(user, "linkedCollections", linkedCollections)
 	}
 
 	async fetchCollection(username, collectionName) {

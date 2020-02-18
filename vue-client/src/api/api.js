@@ -93,8 +93,12 @@ export class Api {
 		return this.fetchJson(`/users`)
 	}
 
-	getCollections(username) {
-		return this.fetchJson(`/users/${username}/collections`)
+	getCollections(username, opts) {
+		const {
+			onlyOwned = true,
+		} = opts
+
+		return this.fetchJson(`/users/${username}/collections?only_owned=${onlyOwned}`)
 	}
 
 	createCollection(username, collection) {
