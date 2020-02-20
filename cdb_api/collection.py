@@ -44,7 +44,10 @@ async def get_collections(
     logged_user: user_db.UserDb = current_user,
     db: Database = transaction,
 ):
-    if not only_owned and username != logged_user.username or logged_user.is_admin:
+    if (not only_owned
+        and not logged_user.is_admin
+        and username != logged_user.username
+    ):
         raise HTTPException(
             status_code = HTTP_403_FORBIDDEN,
             detail =

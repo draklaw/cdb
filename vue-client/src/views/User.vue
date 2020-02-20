@@ -25,7 +25,6 @@ export default {
 	data() {
 		return {
 			store,
-			loaded: false,
 		}
 	},
 	computed: {
@@ -43,13 +42,11 @@ export default {
 	},
 	methods: {
 		async update() {
-			this.store.loading = true
 			await this.store.fetchCollections(this.username)
-			this.store.loading = false
 		},
 	},
 	async created() {
-		await this.update()
+		this.update()
 	},
 }
 </script>
