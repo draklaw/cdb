@@ -25,7 +25,6 @@
 				type="checkbox"
 				v-model="isPublic"
 				v-bind:busy="submitting"
-				required
 			/>
 			<label for="cdbPublic">
 				Public collection

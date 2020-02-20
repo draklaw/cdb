@@ -209,7 +209,7 @@ async def login(
 @router.get(
     "/users",
     response_model = List[UserPublic],
-    response_model_skip_defaults = True,
+    response_model_exclude_unset = True,
     tags = ["users"],
     summary = "Get the list of all users",
 )
@@ -231,7 +231,7 @@ async def get_users(
 @router.get(
     "/users/{username}",
     response_model = UserPublic,
-    response_model_skip_defaults = True,
+    response_model_exclude_unset = True,
     tags = ["users"],
     summary = "Get the user with the given username",
 )

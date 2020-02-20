@@ -17,13 +17,7 @@
 
 from typing import Any
 
-from pydantic import ConstrainedStr, SecretStr
-
-# Schema has been renamed Field in recent version of pydantic
-try:
-    from pydantic import PydanticField
-except ImportError:
-    from pydantic import Schema as PydanticField
+from pydantic import ConstrainedStr, Field as PydanticField, SecretStr
 
 from sqlalchemy import (
     MetaData, Table, Column,
@@ -46,48 +40,45 @@ _type_map = [
 ]
 
 
-class Field(PydanticField):
+def Field(
+    default: Any,
+    *args,
+    alias: str = None,
+    title: str = None,
+    description: str = None,
+    const: bool = None,
+    gt: float = None,
+    ge: float = None,
+    lt: float = None,
+    le: float = None,
+    multiple_of: float = None,
+    min_items: int = None,
+    max_items: int = None,
+    min_length: int = None,
+    max_length: int = None,
+    regex: str = None,
+    **extra: Any,
+):
     """Similar to Pydantic's Field, but with arbitrary positional args."""
-
-    def __init__(
-        self,
-        default: Any,
-        *args,
-        alias: str = None,
-        title: str = None,
-        description: str = None,
-        const: bool = None,
-        gt: float = None,
-        ge: float = None,
-        lt: float = None,
-        le: float = None,
-        multiple_of: float = None,
-        min_items: int = None,
-        max_items: int = None,
-        min_length: int = None,
-        max_length: int = None,
-        regex: str = None,
-        **extra: Any,
-    ):
-        super().__init__(
-            default,
-            alias = alias,
-            title = title,
-            description = description,
-            const = const,
-            gt = gt,
-            ge = ge,
-            lt = lt,
-            le = le,
-            multiple_of = multiple_of,
-            min_items = min_items,
-            max_items = max_items,
-            min_length = min_length,
-            max_length = max_length,
-            regex = regex,
-            args = args,
-            **extra,
-        )
+    return PydanticField(
+        default,
+        alias = alias,
+        title = title,
+        description = description,
+        const = const,
+        gt = gt,
+        ge = ge,
+        lt = lt,
+        le = le,
+        multiple_of = multiple_of,
+        min_items = min_items,
+        max_items = max_items,
+        min_length = min_length,
+        max_length = max_length,
+        regex = regex,
+        args = args,
+        **extra,
+    )
 
 
 def sa_type_from_field(field):
@@ -117,8 +108,7 @@ def create_table(name, cls):
 def create_column(field):
     type = sa_type_from_field(field)
 
-    # schema will be renamed field_info in future pydantic
-    extra = field.schema.extra
+    extra = field.field_info.extra
     kwargs = {**extra}
     args = kwargs.pop("args", [])
     if field.required or field.default is not None:
