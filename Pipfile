@@ -9,9 +9,6 @@ pytest-asyncio = "*"
 requests = "*"
 
 [packages]
-flask = "*"
-flask-restful = "*"
-flask-sqlalchemy = "*"
 sqlalchemy = "*"
 fastapi = "*"
 uvicorn = "*"
