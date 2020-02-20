@@ -56,7 +56,7 @@
 <script>
 import { toIdentifier } from "@/utils"
 
-import store from '@/store/store.js'
+import store from '@/store'
 
 import Page from "@/components/Page.vue"
 import MessageBox from "@/components/MessageBox.vue"

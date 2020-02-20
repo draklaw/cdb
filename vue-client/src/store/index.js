@@ -2,17 +2,53 @@ import Vue from 'vue'
 
 import api from "@/api/api.js"
 
+
+function logCall(target, key, descriptor) {
+	const func = descriptor.value
+	if(typeof func === 'function') {
+		descriptor.value = async function wrapper(...args) {
+			const call = `${key}(${args.join(', ')})`
+			console.log(`Call ${call}...`)
+			try {
+				const result = await func.apply(this, args)
+				console.log(`Result ${call}:`, result)
+				return result
+			}
+			catch(err) {
+				console.error(`Error ${call}`, err)
+				throw err
+			}
+		}
+	}
+	return descriptor
+}
+
+
+function loader(target, key, descriptor) {
+	const func = descriptor.value
+	if(typeof func === 'function') {
+		descriptor.value = async function wrapper(...args) {
+			this.loading += 1
+			try {
+				return await func.apply(this, args)
+			}
+			finally {
+				this.loading -= 1
+			}
+		}
+	}
+	return descriptor
+}
+
+
 export class Store {
 	constructor() {
-		// For debugging
-		window.store = this
-
 		this.user = null
 		this.users = {}
 		this.usersByUsername = {}
 		this.collections = {}
 
-		this.loading = false
+		this.loading = 0
 
 		this.tryGetSavedUser()
 	}
@@ -34,10 +70,12 @@ export class Store {
 		if (!colId)
 			return null
 
-		return this.collections[colId]
+		return this.collections[colId] || null
 	}
 
 
+	@logCall
+	@loader
 	async login(username, password) {
 		const tokenJson = await api.getToken(username, password)
 
@@ -45,7 +83,7 @@ export class Store {
 
 		api.token = token
 
-		this.user = await this.fetchUser(username)
+		Vue.set(this, "user", await this.fetchUser(username))
 
 		localStorage.setItem("user", JSON.stringify(this.user))
 		localStorage.setItem("token", token)
@@ -55,13 +93,13 @@ export class Store {
 		localStorage.removeItem("user")
 		localStorage.removeItem("token")
 
-		this.user = null
+		Vue.set(this, "user", null)
 		api.token = null
 	}
 
+	@logCall
+	@loader
 	async fetchUser(username) {
-		console.log(`fetchUser(${username})`)
-
 		const user = await api.getUser(username)
 		user.collections = []
 		user.collectionsByName = {}
@@ -76,9 +114,9 @@ export class Store {
 		return user
 	}
 
+	@logCall
+	@loader
 	async fetchUsers() {
-		console.log(`fetchUsers()`)
-
 		const users = await api.getUsers()
 		const usersById = {}
 		const usersByUsername = {}
@@ -99,9 +137,9 @@ export class Store {
 		Vue.set(this, "usersByUsername", usersByUsername)
 	}
 
+	@logCall
+	@loader
 	async fetchCollections(username) {
-		console.log(`fetchCollections(${username})`)
-
 		const user = await this.fetchUser(username)
 
 		const collections = await api.getCollections(username)
@@ -120,9 +158,9 @@ export class Store {
 		Vue.set(user, "collectionsByName", collectionsByName)
 	}
 
+	@logCall
+	@loader
 	async fetchLinkedCollections(username) {
-		console.log(`fetchLinkedCollections(${username})`)
-
 		await this.fetchUsers()
 		const user = this.getUser(username)
 
@@ -148,9 +186,9 @@ export class Store {
 		Vue.set(user, "linkedCollections", linkedCollections)
 	}
 
+	@logCall
+	@loader
 	async fetchCollection(username, collectionName) {
-		console.log(`fetchCollection(${username}, ${collectionName})`)
-
 		await this.fetchCollections(username)
 		const collection = this.getCollection(username, collectionName)
 
@@ -163,12 +201,14 @@ export class Store {
 		Vue.set(collection, "fields", fields)
 	}
 
+	@logCall
+	@loader
 	async createCollection(collection) {
-		console.log(`fetchCollection(${JSON.stringify(collection)})`)
-
 		await api.createCollection(this.user.username, collection)
 	}
 
+	@logCall
+	@loader
 	async tryGetSavedUser() {
 		const user = JSON.parse(localStorage.getItem("user"))
 		const token = localStorage.getItem("token")
@@ -179,17 +219,17 @@ export class Store {
 		}
 
 		api.token = token
-		this.user = user
 
 		try {
-			this.user = await this.fetchUser(this.user.username)
+			Vue.set(this, "user", await this.fetchUser(user.username))
 		}
 		catch(error) {
-			this.token = null
-			this.user = null
+			api.token = null
+			Vue.set(this, "user", null)
 		}
 	}
 }
 
 
-export default new Store()
+const store = new Store()
+export default store

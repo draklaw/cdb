@@ -2,13 +2,16 @@
 	<div>
 		<router-view v-if="user"/>
 		<page v-else>
-			<login/>
+			<div v-if="loading">
+				Loading...
+			</div>
+			<login v-else/>
 		</page>
 	</div>
 </template>
 
 <script>
-import store from '@/store/store.js'
+import store from '@/store'
 
 import Login from '@/components/Login.vue'
 import Page from '@/components/Page.vue'
@@ -27,15 +30,12 @@ export default {
 	computed: {
 		user() {
 			return this.store.user
+		},
+		loading() {
+			return this.store.loading
 		}
 	},
 	methods: {
-		logout() {
-			this.store.logout()
-		},
-		newCollection() {
-			this.$router.push("/new-collection")
-		},
 	},
 }
 </script>

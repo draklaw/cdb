@@ -93,7 +93,7 @@ export class Api {
 		return this.fetchJson(`/users`)
 	}
 
-	getCollections(username, opts) {
+	getCollections(username, opts={}) {
 		const {
 			onlyOwned = true,
 		} = opts

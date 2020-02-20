@@ -1,37 +1,38 @@
 <template>
 	<page>
-		<header>
+		<template v-if="collection">
 			<h2>{{ collection.title }}</h2>
 			<input
 				type="text"
 				v-model="searchQuery"
 				placeholder="Search"
 			/>
-			<router-link
-				to="/new-collection"
-			>
-				+
-			</router-link>
-		</header>
-		<!-- <cdb-table
-			v-bind:items="filteredItems"
-			v-bind:fields="collection.fields"
-			class="cdbCollectionTable"
-		/> -->
+			<button v-on:click="openNewItemPane">
+				New item
+			</button>
+			<cdb-table
+				v-bind:items="filteredItems"
+				v-bind:fields="collection.fields"
+				class="cdbCollectionTable"
+			/>
+		</template>
+		<div v-else>
+			Loading...
+		</div>
 	</page>
 </template>
 
 <script>
-import store from '@/store/store.js'
+import store from '@/store'
 
 import Page from '@/components/Page.vue'
-// import CdbTable from '@/components/CdbTable.vue'
+import CdbTable from '@/components/CdbTable.vue'
 
 export default {
 	name: 'collection',
 	components: {
 		Page,
-		// CdbTable,
+		CdbTable,
 	},
 	data() {
 		return {
@@ -65,16 +66,14 @@ export default {
 	},
 	methods: {
 		async update() {
-			this.store.loading = true
 			await this.store.fetchCollection(this.username, this.collectionName)
-			this.store.loading = false
 		},
-		showNewItemPane() {
-
+		openNewItemPane() {
+			console.warn("openNewItemPane not implemented.")
 		},
 	},
-	async created() {
-		await this.update()
+	created() {
+		this.update()
 	},
 }
 </script>

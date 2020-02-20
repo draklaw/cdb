@@ -20,7 +20,7 @@
 
 
 <script>
-import store from '@/store/store.js'
+import store from '@/store'
 
 export default {
 	components: {
@@ -34,14 +34,6 @@ export default {
 	data() {
 		return {
 			store,
-			userOptions: [
-				{
-					label: "Logout",
-					action(component) {
-						component.logout()
-					},
-				},
-			],
 		}
 	},
 	computed: {
@@ -53,11 +45,6 @@ export default {
 		},
 	},
 	methods: {
-		userMenuClicked(event) {
-			const action = event.action
-			if (action)
-				action(this)
-		},
 		logout() {
 			this.store.logout()
 		},

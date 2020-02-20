@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import store from "@/store/store.js"
+import store from "@/store"
 
 import MessageBox from '@/components/MessageBox.vue'
 
