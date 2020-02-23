@@ -59,21 +59,21 @@ async def disconnect_from_database():
     await db.teardown_database()
 
 
-@app.middleware("http")
-async def convert_db_exceptions(request: Request, call_next):
-    try:
-        return await call_next(request)
-    except NotFoundError:
-        return JSONResponse(
-            status_code = HTTP_404_NOT_FOUND,
-            content = dict(
-                detail = f"Ressource {request.url} does not exists",
-            )
-        )
-    except AlreadyExistsError:
-        return JSONResponse(
-            status_code = HTTP_403_FORBIDDEN,
-            content = dict(
-                detail = f"Ressource already exists",
-            )
-        )
+@app.exception_handler(NotFoundError)
+def not_found_error_handler(request: Request, exc: NotFoundError):
+    return JSONResponse(
+        {
+            "detail": f"Ressource {request.url} does not exists",
+        },
+        status_code = HTTP_404_NOT_FOUND,
+    )
+
+
+@app.exception_handler(AlreadyExistsError)
+def already_exsits_error_handler(request: Request, exc: NotFoundError):
+    return JSONResponse(
+        {
+            "detail": str(exc),
+        },
+        status_code = HTTP_403_FORBIDDEN,
+    )

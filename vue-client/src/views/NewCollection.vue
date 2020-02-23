@@ -30,18 +30,17 @@
 				Public collection
 			</label>
 			<div>
-				Headers:
+				Fields:
+				<button v-on:click.prevent="addField">
+					Add Field
+				</button>
 			</div>
-			<header-form
-				v-for="[i, header] in headers.entries()"
-				v-bind:key="i"
-				v-bind:value="header"
-				v-on:delete="deleteHeader(i)"
+			<field-form
+				v-for="field in fields"
+				v-bind:key="field.key"
+				v-bind:value="field"
+				v-on:delete="deleteField(field.key)"
 				delete-button
-			/>
-			<header-form
-				v-bind:value="newHeader"
-				v-on:add="addHeader"
 			/>
 			<button
 				type="submit"
@@ -59,14 +58,14 @@ import store from '@/store'
 
 import Page from "@/components/Page.vue"
 import MessageBox from "@/components/MessageBox.vue"
-import HeaderForm from "@/components/HeaderForm.vue"
+import FieldForm from "@/components/FieldForm.vue"
 
 export default {
 	name: "new-collection",
 	components: {
 		Page,
 		MessageBox,
-		HeaderForm,
+		FieldForm,
 	},
 	data() {
 		return {
@@ -76,13 +75,8 @@ export default {
 			isPublic: false,
 			submitting: false,
 			messages: [],
-			newHeader: {
-				label: "",
-				name: "",
-				type: "text",
-				columnIndex: -1,
-			},
-			headers: [],
+			fieldCounter: 0,
+			fields: [],
 		}
 	},
 	methods: {
@@ -90,11 +84,19 @@ export default {
 			this.name = toIdentifier(this.title)
 		},
 		async createCollection() {
+			const fields = []
+			for(const field of this.fields) {
+				fields.push({
+					name: field.name,
+					type: field.type,
+				})
+			}
+
 			const collection = {
 				title: this.title,
 				name: this.name,
 				public: this.isPublic,
-				headers: this.headers,
+				std_fields: fields,
 			}
 
 			this.submitting = true
@@ -103,6 +105,7 @@ export default {
 				this.$router.push(`/${this.store.user.username}/${this.name}`)
 			}
 			catch(error) {
+				console.log(error)
 				this.messages = [{
 					message: error.message,
 					type: "negative",
@@ -110,18 +113,18 @@ export default {
 				this.submitting = false
 			}
 		},
-		addHeader() {
-			const header = Object.assign({}, this.newHeader)
-			this.headers.push(header)
-			this.newHeader = {
-				label: "",
+		addField() {
+			this.fields.push({
+				key: this.fieldCounter,
 				name: "",
 				type: "text",
-				columnIndex: -1,
-			}
+			})
+			this.fieldCounter += 1
 		},
-		deleteHeader(index) {
-			this.headers.splice(index, 1)
+		deleteField(key) {
+			const index = this.fields.findIndex(f => f.key == key)
+			if (index >= 0)
+				this.fields.splice(index, 1)
 		},
 	},
 }

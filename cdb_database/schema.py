@@ -106,9 +106,12 @@ def create_table(name, cls):
 
 
 def create_column(field):
-    type = sa_type_from_field(field)
-
     extra = field.field_info.extra
+
+    type = extra.pop("sa_type", None)
+    if type is None:
+        type = sa_type_from_field(field)
+
     kwargs = {**extra}
     args = kwargs.pop("args", [])
     if field.required or field.default is not None:

@@ -98,7 +98,7 @@ def test_get_owned_public_collection(client, user_headers):
 
     expected = dict(
         **test_public_col.dict(include={
-            "id", "owner", "name", "title", "public", "deleted",
+            "id", "owner", "name", "title", "public", "std_fields", "deleted",
         }),
         can_edit = True,
     )
@@ -115,7 +115,7 @@ def test_get_owned_private_collection(client, user_headers):
 
     expected = dict(
         **test_test_col.dict(include={
-            "id", "owner", "name", "title", "public", "deleted",
+            "id", "owner", "name", "title", "public", "std_fields", "deleted",
         }),
         can_edit = True,
     )
@@ -132,7 +132,7 @@ def test_get_other_public_collection(client, user_headers):
 
     expected = dict(
         **admin_public_col.dict(include={
-            "id", "owner", "name", "title", "public", "deleted",
+            "id", "owner", "name", "title", "public", "std_fields", "deleted",
         }),
         can_edit = False,
     )
@@ -159,7 +159,7 @@ def test_get_other_shared_collection(client, user_headers):
 
     expected = dict(
         **admin_shared_col.dict(include={
-            "id", "owner", "name", "title", "public", "deleted",
+            "id", "owner", "name", "title", "public", "std_fields", "deleted",
         }),
         can_edit = False,
     )
@@ -239,6 +239,12 @@ def test_create_owned_collection(client, user_headers):
         name = "new",
         title = "A new collection",
         public = True,
+        std_fields = [
+            dict(
+                name = "test",
+                type = "text",
+            ),
+        ],
     )
 
     response = client.post(
@@ -272,6 +278,12 @@ def test_create_other_collection(client, user_headers):
         name = "new",
         title = "A new collection",
         public = True,
+        std_fields = [
+            dict(
+                name = "test",
+                type = "text",
+            ),
+        ],
     )
 
     response = client.post(
@@ -289,6 +301,12 @@ def test_create_duplicate_collection(client, user_headers):
         name = "new",
         title = "A new collection",
         public = True,
+        std_fields = [
+            dict(
+                name = "test",
+                type = "text",
+            ),
+        ],
     )
 
     response = client.post(
@@ -314,6 +332,12 @@ def test_update_owned_collection(client, user_headers):
         name = "new-name",
         title = "A renamed collection",
         public = True,
+        std_fields = [
+            dict(
+                name = "foo",
+                type = "bar",
+            ),
+        ],
     )
 
     response = client.put(
@@ -347,6 +371,12 @@ def test_update_private_collection(client, user_headers):
         name = "new-name",
         title = "A renamed collection",
         public = True,
+        std_fields = [
+            dict(
+                name = "foo",
+                type = "bar",
+            ),
+        ],
     )
 
     response = client.put(
@@ -364,6 +394,12 @@ def test_update_shared_collection(client, user_headers):
         name = "new-name",
         title = "A renamed collection",
         public = True,
+        std_fields = [
+            dict(
+                name = "foo",
+                type = "bar",
+            ),
+        ],
     )
 
     response = client.put(
@@ -381,6 +417,12 @@ def test_update_shared_edit_collection(client, user_headers):
         name = "new-name",
         title = "A renamed collection",
         public = True,
+        std_fields = [
+            dict(
+                name = "foo",
+                type = "bar",
+            ),
+        ],
     )
 
     response = client.put(
@@ -414,6 +456,12 @@ def test_update_deleted_collection(client, user_headers):
         name = "new-name",
         title = "A renamed collection",
         public = True,
+        std_fields = [
+            dict(
+                name = "foo",
+                type = "bar",
+            ),
+        ],
     )
 
     response = client.put(
@@ -431,6 +479,12 @@ def test_update_inexistant_collection(client, user_headers):
         name = "new-name",
         title = "A renamed collection",
         public = True,
+        std_fields = [
+            dict(
+                name = "foo",
+                type = "bar",
+            ),
+        ],
     )
 
     response = client.put(
@@ -532,7 +586,7 @@ def test_get_owned_public_collection_as_admin(client, admin_headers):
 
     expected = dict(
         **admin_public_col.dict(include={
-            "id", "owner", "name", "title", "public", "deleted",
+            "id", "owner", "name", "title", "public", "std_fields", "deleted",
         }),
         can_edit = True,
     )
@@ -549,7 +603,7 @@ def test_get_owned_private_collection_as_admin(client, admin_headers):
 
     expected = dict(
         **admin_private_col.dict(include={
-            "id", "owner", "name", "title", "public", "deleted",
+            "id", "owner", "name", "title", "public", "std_fields", "deleted",
         }),
         can_edit = True,
     )
@@ -566,7 +620,7 @@ def test_get_other_public_collection_as_admin(client, admin_headers):
 
     expected = dict(
         **test_public_col.dict(include={
-            "id", "owner", "name", "title", "public", "deleted",
+            "id", "owner", "name", "title", "public", "std_fields", "deleted",
         }),
         can_edit = True,
     )
@@ -583,7 +637,7 @@ def test_get_other_private_collection_as_admin(client, admin_headers):
 
     expected = dict(
         **test_test_col.dict(include={
-            "id", "owner", "name", "title", "public", "deleted",
+            "id", "owner", "name", "title", "public", "std_fields", "deleted",
         }),
         can_edit = True,
     )
@@ -678,6 +732,12 @@ def test_create_owned_collection_as_admin(client, admin_headers):
         name = "new",
         title = "A new collection",
         public = True,
+        std_fields = [
+            dict(
+                name = "foo",
+                type = "bar",
+            ),
+        ],
     )
 
     response = client.post(
@@ -711,6 +771,12 @@ def test_create_other_collection_as_admin(client, admin_headers):
         name = "new",
         title = "A new collection",
         public = True,
+        std_fields = [
+            dict(
+                name = "foo",
+                type = "bar",
+            ),
+        ],
     )
 
     response = client.post(
@@ -744,6 +810,12 @@ def test_create_duplicate_collection_as_admin(client, admin_headers):
         name = "new",
         title = "A new collection",
         public = True,
+        std_fields = [
+            dict(
+                name = "foo",
+                type = "bar",
+            ),
+        ],
     )
 
     response = client.post(
@@ -769,6 +841,12 @@ def test_update_owned_collection_as_admin(client, admin_headers):
         name = "new-name",
         title = "A renamed collection",
         public = True,
+        std_fields = [
+            dict(
+                name = "foo",
+                type = "bar",
+            ),
+        ],
     )
 
     response = client.put(
@@ -802,6 +880,12 @@ def test_update_private_collection_as_admin(client, admin_headers):
         name = "new-name",
         title = "A renamed collection",
         public = True,
+        std_fields = [
+            dict(
+                name = "foo",
+                type = "bar",
+            ),
+        ],
     )
 
     response = client.put(
@@ -835,6 +919,12 @@ def test_update_deleted_collection_as_admin(client, admin_headers):
         name = "new-name",
         title = "A renamed collection",
         public = True,
+        std_fields = [
+            dict(
+                name = "foo",
+                type = "bar",
+            ),
+        ],
     )
 
     response = client.put(
@@ -868,6 +958,12 @@ def test_update_inexistant_collection_as_admin(client, admin_headers):
         name = "new-name",
         title = "A renamed collection",
         public = True,
+        std_fields = [
+            dict(
+                name = "foo",
+                type = "bar",
+            ),
+        ],
     )
 
     response = client.put(

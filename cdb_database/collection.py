@@ -16,18 +16,20 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from typing import List, Union
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from sqlalchemy import (
     select, and_, or_,
 )
 from databases import Database
+import asyncpg
 
 from .tables import (
+    CollectionField,
     UserDb, CollectionDb,
     users, collections, user_collections,
 )
-from .error import convert_error, ForbiddenError
+from .error import convert_error, AlreadyExistsError, ForbiddenError
 from .user import get_user_query
 from .utils import raise_if_all_none
 
@@ -38,6 +40,7 @@ class CollectionIn(BaseModel):
     name: str = ...
     title: str = ...
     public: bool = False
+    std_fields: List[CollectionField] = ...
 
 
 class CollectionCreate(BaseModel):
@@ -47,6 +50,7 @@ class CollectionCreate(BaseModel):
     name: str = ...
     title: str = ...
     public: bool = False
+    std_fields: List[CollectionField] = ...
 
 
 class Collection(BaseModel):
@@ -57,6 +61,7 @@ class Collection(BaseModel):
     name: str = ...
     title: str = ...
     public: bool = False
+    std_fields: List[CollectionField] = ...
     deleted: bool = False
 
     can_edit: bool = True
@@ -76,10 +81,11 @@ class Collection(BaseModel):
         return lambda row: cls.from_row(logged_user, row)
 
 
-class CollectionUpdate(CollectionIn):
+class CollectionUpdate(BaseModel):
     name: str
     title: str
     public: bool
+    std_fields: List[CollectionField] = ...
 
 
 @convert_error
@@ -92,7 +98,10 @@ async def create_collection(
     params = collection.dict(exclude={"id"})
     params.setdefault("deleted", False)
 
-    id = await database.execute(collections.insert(), params)
+    try:
+        id = await database.execute(collections.insert(), params)
+    except asyncpg.exceptions.UniqueViolationError:
+        raise AlreadyExistsError(f"Collection \"{collection.name}\" already exists.")
 
     await link_user_to_collection(
         database,
@@ -235,7 +244,7 @@ async def update_collection(
             database,
             collection_id = collection_id,
         )
-        .values(**value.dict(include={"name", "title", "public"}))
+        .values(**value.dict(include={"name", "title", "public", "std_fields"}))
     )
 
     return await database.one(query)

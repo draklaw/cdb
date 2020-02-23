@@ -1,15 +1,5 @@
 <template>
-	<form
-		v-on:sumbit.prevent=""
-		class="cdbHeaderForm"
-	>
-		<input
-			v-model="value.label"
-			v-on:input="updateName"
-			class="cdbHeaderFormLabel"
-			placeholder="Label"
-			required
-		>
+	<div>
 		<input
 			v-model="value.name"
 			class="cdbHeaderFormName"
@@ -22,25 +12,17 @@
 			<option>number</option>
 			<option>date</option>
 		</select>
-		<input
-			v-model="value.columnIndex"
-			type="number"
-			class="cdbHeaderFormColumn"
-			required
-		>
 
 		<button
 			v-on:click.prevent="$emit('delete', value)"
 		>
 			Remove
 		</button>
-	</form>
+	</div>
 </template>
 
 
 <script>
-import { toIdentifier } from '@/utils'
-
 export default{
 	components: {
 	},
@@ -48,10 +30,8 @@ export default{
 		value: {
 			default() {
 				return {
-					label: "",
 					name: "",
 					type: "text",
-					columnIndex: -1,
 				}
 			},
 			type: Object,
@@ -60,9 +40,6 @@ export default{
 	computed: {
 	},
 	methods: {
-		updateName() {
-			this.value.name = toIdentifier(this.value.label)
-		},
 	},
 }
 </script>

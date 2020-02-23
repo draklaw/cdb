@@ -58,16 +58,19 @@ export class Api {
 		const response = await this.fetch(path, init);
 
 		if(!response.ok) {
-			if(response.status == 422)
-				throw new ApiError("Unknown error")
+			// if(response.status == 422)
+			// 	throw new ApiError("Unknown error")
 
+			let message = "Unknown error"
 			try {
 				const json = await response.json()
-				throw new ApiError(json.detail)
+				message = json.detail
 			}
 			catch(error) {
-				throw new ApiError(`${response.status} ${response.statusText}`)
+				message = `${response.status} ${response.statusText}`
 			}
+
+			throw new ApiError(message)
 		}
 
 		return await response.json();

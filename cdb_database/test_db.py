@@ -19,6 +19,7 @@ from databases import Database
 
 from .user import UserDb, UserCreate, create_user
 from .collection import (
+    CollectionField,
     CollectionDb,
     CollectionCreate,
     create_collection,
@@ -114,18 +115,21 @@ admin_private_col = builder.add_collection(
     owner = admin_user.id,
     name = "private",
     title = "Nobody can see this but me",
+    std_fields = [],
 )
 
 admin_shared_col = builder.add_collection(
     owner = admin_user.id,
     name = "shared",
     title = "Private but shared with test",
+    std_fields = [],
 )
 
 admin_shared_edit_col = builder.add_collection(
     owner = admin_user.id,
     name = "shared-edit",
     title = "Private but shared with test, with edit rights",
+    std_fields = [],
 )
 
 admin_public_col = builder.add_collection(
@@ -133,12 +137,23 @@ admin_public_col = builder.add_collection(
     name = "public",
     title = "Everybody can see this",
     public = True,
+    std_fields = [],
 )
 
 test_test_col = builder.add_collection(
     owner = test_user.id,
     name = "test",
     title = "This is a test",
+    std_fields = [
+        CollectionField(
+            name = "field",
+            type = "text",
+        ),
+        CollectionField(
+            name = "another",
+            type = "int",
+        ),
+    ]
 )
 
 test_public_col = builder.add_collection(
@@ -146,12 +161,14 @@ test_public_col = builder.add_collection(
     name = "public",
     title = "Public collection",
     public = True,
+    std_fields = [],
 )
 
 test_deleted_col = builder.add_collection(
     owner = test_user.id,
     name = "deleted",
     title = "Deleted collection",
+    std_fields = [],
     deleted = True,
 )
 
@@ -160,6 +177,7 @@ disabled_public_col = builder.add_collection(
     name = "public",
     title = "Public collection",
     public = True,
+    std_fields = [],
 )
 
 

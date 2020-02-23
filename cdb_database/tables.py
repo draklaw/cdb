@@ -15,12 +15,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from typing import List
+
 from pydantic import BaseModel, SecretStr
 from sqlalchemy import (
-    ForeignKey, PrimaryKeyConstraint, UniqueConstraint,
+    ForeignKey, PrimaryKeyConstraint, UniqueConstraint, JSON,
 )
 
 from .schema import Field, create_table
+
+
+class CollectionField(BaseModel):
+    name: str = ...
+    type: str = ...
 
 
 class UserDb(BaseModel):
@@ -48,6 +55,7 @@ class CollectionDb(BaseModel):
     name: str = Field(..., index=True)
     title: str = ...
     public: bool = False
+    std_fields: List[CollectionField] = Field(..., sa_type=JSON)
     deleted: bool = False
 
     class Config:

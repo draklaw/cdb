@@ -23,6 +23,7 @@ from cdb_database.error import (
     ForbiddenError,
 )
 from cdb_database.collection import (
+    CollectionField,
     CollectionCreate,
     CollectionDb,
     CollectionIn,
@@ -280,6 +281,12 @@ async def test_create_collection(database):
             owner = test_user.id,
             title = "A new collection",
             public = True,
+            std_fields = [
+                CollectionField(
+                    name = "test",
+                    type = "text",
+                )
+            ],
         )
         result = await create_collection(database, collection)
 
@@ -299,6 +306,12 @@ async def test_create_duplicate_collection(database):
             owner = test_user.id,
             title = "A new collection",
             public = True,
+            std_fields = [
+                CollectionField(
+                    name = "test",
+                    type = "text",
+                )
+            ],
         )
         await create_collection(database, collection)
 
@@ -312,6 +325,12 @@ async def test_update_collection(database):
             name = "updated",
             title = "Another title",
             public = True,
+            std_fields = [
+                CollectionField(
+                    name = "foo",
+                    type = "bar",
+                )
+            ],
         )
 
         await update_collection(
@@ -328,7 +347,7 @@ async def test_update_collection(database):
         )
 
         expected = Collection(
-            **test_test_col.dict(exclude={"name", "title", "public"}),
+            **test_test_col.dict(exclude={"name", "title", "public", "std_fields"}),
             **update.dict(),
             user_id = test_user.id,
             can_edit = True,
